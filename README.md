@@ -77,11 +77,13 @@ CNWordle/
 └── README.md           # 项目说明文档
 ```
 
-## 待办事项
+## 鸣谢
 
-- [ ] 优化移动端手写板体验
-- [ ] 增加每日一字模式（目前为随机模式）
-- [ ] 增加分享功能
+- **代码**：Claude Opus 4.5、Gemini 3 Pro、GPT 4.1（摸鱼的）
+- **构思**：biliyoyo520
+- **灵感**：[chunqiuyiyu](https://news.ycombinator.com/item?id=46145168#46145277)
+- **技术点**：汉字otf字体转svg拆分、使用Google IME识别手写体、使用HanziLookup实现离线识别
+- **UI**：[Wordle](https://powerlanguage-wordle.github.io/)
 
 ## 许可证
 
