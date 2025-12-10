@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>汉字 Wordle</title>
+    <!-- HanziLookup 原版库 -->
+    <script src="https://cdn.jsdelivr.net/gh/gugray/HanziLookupJS@master/dist/hanzilookup.min.js"></script>
+    <link rel="stylesheet" href="./index.css">
+</head>
+<body>
+    <!-- 加载浮窗 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-title">汉字 Wordle</div>
+            <div class="loading-message" id="loadingMessage">正在加载字体...</div>
+            <div class="loading-progress-container">
+                <div class="loading-progress-bar indeterminate" id="loadingProgressBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 遮罩层（窄屏浮窗时使用） -->
+    <div class="overlay" id="overlay"></div>
+
+    <div class="app-container" id="appContainer">
+        <div class="game-container">
+            <!-- 头部 -->
+            <header class="header">
+                <button class="header-btn" id="helpBtn" aria-label="帮助">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>
+                    </svg>
+                </button>
+                <div class="header-title">汉字 Wordle</div>
+                <button class="header-btn" id="themeBtn" aria-label="切换主题">
+                    <!-- 半太阳半月亮（跟随系统） -->
+                    <svg class="theme-icon active" id="iconAuto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <defs>
+                            <clipPath id="leftHalf"><rect x="0" y="0" width="12" height="24"/></clipPath>
+                            <clipPath id="rightHalf"><rect x="12" y="0" width="12" height="24"/></clipPath>
+                        </defs>
+                        <!-- 左半边：太阳 -->
+                        <g clip-path="url(#leftHalf)">
+                            <circle cx="12" cy="12" r="5" fill="currentColor"/>
+                            <path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </g>
+                        <!-- 右半边：月亮 -->
+                        <g clip-path="url(#rightHalf)">
+                            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/>
+                        </g>
+                    </svg>
+                    <!-- 太阳（亮色模式） -->
+                    <svg class="theme-icon" id="iconLight" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="5" fill="currentColor"/>
+                        <path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <!-- 月亮（暗色模式） -->
+                    <svg class="theme-icon" id="iconDark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/>
+                    </svg>
+                </button>
+            </header>
+
+            <!-- 输入区域 -->
+            <section class="input-section">
+                <div class="input-wrapper">
+                    <input type="text" id="guessInput" class="char-input" maxlength="1" autocomplete="off" autofocus>
+                    <div class="input-svg-overlay" id="inputSvgOverlay"></div>
+                </div>
+                <div class="guess-count" id="guessCountContainer">第 <span id="guessCount">0</span> 次</div>
+                <div class="input-controls">
+                    <button id="guessBtn" class="guess-btn" disabled>猜</button>
+                    <button id="giveUpBtn" class="give-up-btn">认输</button>
+                    <button id="handwriteBtn" class="handwrite-btn">✏️ 手写</button>
+                </div>
+            </section>
+
+            <!-- 图例 -->
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color high"></div>
+                    <span>完全匹配</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color medium"></div>
+                    <span>部分相似</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color low"></div>
+                    <span>不匹配</span>
+                </div>
+            </div>
+
+            <!-- 历史格子 -->
+            <section class="history-section">
+                <div class="history-grid" id="historyGrid">
+                    <!-- 15个格子由JS生成 -->
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- 详情面板/侧边栏 -->
+    <aside class="detail-panel" id="detailPanel">
+        <div class="detail-header">
+            <span class="detail-title">详情</span>
+            <button class="close-btn" id="detailCloseBtn">&times;</button>
+        </div>
+        <div class="detail-content">
+            <div class="detail-glyph" id="detailGlyph">
+                <!-- SVG 放大显示 -->
+            </div>
+            <div class="detail-similarity" id="detailSimilarity">
+                <!-- 相似度列表 -->
+            </div>
+        </div>
+        <div class="detail-warning" id="detailWarning">⚠️ 该字不在选字列表中</div>
+    </aside>
+
+    <!-- 帮助弹窗 -->
+    <div class="help-modal-overlay" id="helpModal">
+        <div class="help-modal">
+            <button class="help-modal-close" id="helpCloseBtn">&times;</button>
+            <div class="help-modal-title">🎯 如何游戏</div>
+            <div class="help-modal-content">
+                <p>猜出隐藏的汉字！每次猜测后，系统会根据<strong>字形相似度</strong>给出提示。</p>
+                
+                <h4>颜色含义</h4>
+                <div class="help-color-legend">
+                    <div class="help-color-item">
+                        <div class="help-color-box green"></div>
+                        <span>部件完全匹配（≥99%）</span>
+                    </div>
+                    <div class="help-color-item">
+                        <div class="help-color-box yellow"></div>
+                        <span>部件部分相似（66%-99%）</span>
+                    </div>
+                    <div class="help-color-item">
+                        <div class="help-color-box gray"></div>
+                        <span>部件不匹配（<66%）</span>
+                    </div>
+                </div>
+
+                <h4>边框含义</h4>
+                <p>• <strong style="color: var(--color-correct)">绿色边框</strong>：恭喜！你猜对了！</p>
+                <p>• <strong style="color: var(--color-present)">黄色边框</strong>：这个字不在目标词库中</p>
+
+                <h4>操作方式</h4>
+                <p>• 输入汉字后，按回车或点击「猜」按钮提交</p>
+                <p>• 输入后3秒会自动提交</p>
+                <p>• 点击历史格子可查看详情</p>
+            </div>
+            <button class="help-modal-btn" id="helpGotItBtn">我知道了</button>
+        </div>
+    </div>
+
+    <!-- 胜利弹窗 -->
+    <div class="modal-overlay" id="winModal">
+        <div class="modal">
+            <button class="modal-close" id="modalCloseBtn">&times;</button>
+            <div class="modal-title">🎉 你赢了！</div>
+            <div class="modal-target" id="modalTarget"></div>
+            <div class="modal-message">
+                你用了 <strong id="modalGuessCount">0</strong> 次猜测找到了答案！
+            </div>
+            <button class="modal-btn" id="playAgainBtn">再来一局</button>
+        </div>
+    </div>
+
+    <!-- 认输弹窗 -->
+    <div class="modal-overlay" id="loseModal">
+        <div class="modal">
+            <button class="modal-close" id="loseModalCloseBtn">&times;</button>
+            <div class="modal-title">😔 认输了</div>
+            <div class="modal-target" id="loseModalTarget"></div>
+            <div class="modal-message">
+                答案是上面这个字，你猜了 <strong id="loseModalGuessCount">0</strong> 次
+            </div>
+            <button class="modal-btn" id="losePlayAgainBtn">再来一局</button>
+        </div>
+    </div>
+
+    <!-- 手写板弹窗 -->
+    <div class="handwrite-modal" id="handwriteModal">
+        <div class="handwrite-panel">
+            <div class="handwrite-header">
+                <span class="handwrite-title">✏️ 手写输入</span>
+                <button class="handwrite-close" id="handwriteCloseBtn" tabindex="-1">&times;</button>
+            </div>
+            <div class="handwrite-engine-selector">
+                <span>识别引擎:</span>
+                <select id="handwriteEngineSelect" tabindex="-1">
+                    <option value="hanzilookup">基础 (离线)</option>
+                    <option value="proxy">代理 (在线)</option>
+                    <option value="google" selected>Google (直连)</option>
+                </select>
+                <span class="handwrite-engine-status" id="handwriteEngineStatus">就绪</span>
+            </div>
+            <div class="handwrite-canvas-container">
+                <canvas id="handwriteCanvas" width="256" height="256" tabindex="-1"></canvas>
+            </div>
+            <div class="handwrite-controls">
+                <button class="handwrite-control-btn" id="handwriteUndoBtn" tabindex="-1">撤销</button>
+                <button class="handwrite-control-btn" id="handwriteClearBtn" tabindex="-1">清空</button>
+            </div>
+            <div class="handwrite-candidates" id="handwriteCandidates">
+                <span class="handwrite-placeholder">在上方书写汉字</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.4/dist/opentype.min.js"></script>
+    <script src="./index.js"></script>
+</body>
+</html>
