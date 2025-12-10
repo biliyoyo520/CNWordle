@@ -1,4 +1,4 @@
-﻿        // ==================== 游戏状态 ====================
+﻿// ==================== 游戏状态 ====================
         let targetChar = '';
         let guessCount = 0;
         let gameWon = false;
@@ -83,6 +83,34 @@
         const loadingMessage = document.getElementById('loadingMessage');
         const loadingProgressBar = document.getElementById('loadingProgressBar');
 
+        function updateGuessCountDisplay(count) {
+            const prefix = window.t ? window.t('guess_count_prefix') : null;
+            const suffix = window.t ? window.t('guess_count_suffix') : null;
+            
+            const p = prefix !== null ? prefix : '第';
+            const s = suffix !== null ? suffix : '次';
+            
+            guessCountContainer.innerHTML = `${p} <span id="guessCount">${count}</span> ${s}`;
+        }
+
+        window.addEventListener('languageChanged', (e) => {
+            updateGuessCountDisplay(guessCount);
+            if (helpCountdownTimer) {
+                updateHelpCountdown();
+            }
+            // Update handwrite candidates placeholder if empty
+            const placeholder = handwriteCandidates.querySelector('.handwrite-placeholder');
+            if (placeholder) {
+                 const msg = (window.t && window.t('handwrite_placeholder')) || '在上方书写汉字';
+                 // Check if it's the "no result" message or the default placeholder
+                 if (placeholder.textContent.includes('未识别') || (window.t && placeholder.textContent === window.t('handwrite_no_result'))) {
+                     placeholder.textContent = (window.t && window.t('handwrite_no_result')) || '未识别到汉字';
+                 } else {
+                     placeholder.textContent = msg;
+                 }
+            }
+        });
+
         async function init() {
             applyTheme(); // 初始化时应用主题
             initHistoryGrid();
@@ -102,7 +130,7 @@
                     startNewGame();
                 }
             } else {
-                showLoadingError('字体加载失败，请刷新页面');
+                showLoadingError((window.t && window.t('loading_error')) || '字体加载失败，请刷新页面');
             }
             setupEventListeners();
         }
@@ -122,7 +150,8 @@
         }
 
         function updateHelpCountdown() {
-            helpGotItBtn.textContent = `我知道了(${helpCountdownValue})`;
+            const gotIt = (window.t && window.t('btn_got_it')) || '我知道了';
+            helpGotItBtn.textContent = `${gotIt}(${helpCountdownValue})`;
         }
 
         function closeFirstTimeHelp() {
@@ -152,7 +181,7 @@
         }
 
         function hideLoading() {
-            updateLoadingProgress(100, '加载完成!');
+            updateLoadingProgress(100, (window.t && window.t('loading_complete')) || '加载完成!');
             setTimeout(() => {
                 loadingOverlay.classList.add('hidden');
             }, 300);
@@ -185,7 +214,7 @@
             for (let i = 0; i < presetFonts.length; i++) {
                 const fontPath = presetFonts[i];
                 try {
-                    updateLoadingProgress(10 + i * 20, `正在加载字体 (${i + 1}/${presetFonts.length})...`);
+                    updateLoadingProgress(10 + i * 20, `${(window.t && window.t('loading_font')) || '正在加载字体'} (${i + 1}/${presetFonts.length})...`);
                     
                     const response = await fetch(fontPath);
                     if (!response.ok) continue;
@@ -204,7 +233,7 @@
                             chunks.push(value);
                             received += value.length;
                             const percent = Math.round((received / total) * 70) + 20;
-                            updateLoadingProgress(percent, `正在下载字体... ${Math.round(received / 1024)}KB / ${Math.round(total / 1024)}KB`);
+                            updateLoadingProgress(percent, `${(window.t && window.t('downloading_font')) || '正在下载字体...'} ${Math.round(received / 1024)}KB / ${Math.round(total / 1024)}KB`);
                         }
                         
                         const arrayBuffer = new Uint8Array(received);
@@ -214,7 +243,7 @@
                             position += chunk.length;
                         }
                         
-                        updateLoadingProgress(90, '正在解析字体...');
+                        updateLoadingProgress(90, (window.t && window.t('parsing_font')) || '正在解析字体...');
                         
                         try {
                             const fonts = opentype.parseCollection(arrayBuffer.buffer);
@@ -226,7 +255,7 @@
                         // 不支持进度，使用伪进度
                         const arrayBuffer = await response.arrayBuffer();
                         
-                        updateLoadingProgress(90, '正在解析字体...');
+                        updateLoadingProgress(90, (window.t && window.t('parsing_font')) || '正在解析字体...');
 
                         try {
                             const fonts = opentype.parseCollection(arrayBuffer);
@@ -251,12 +280,12 @@
             guessCount = 0;
             gameWon = false;
             guessHistory = [];
-            guessCountContainer.innerHTML = '第 <span id="guessCount">0</span> 次';
+            updateGuessCountDisplay(0);
             guessInput.value = '';
             guessInput.classList.remove('has-svg');
             inputSvgOverlay.classList.remove('show');
             inputSvgOverlay.innerHTML = '';
-            guessBtn.textContent = '猜';
+            guessBtn.textContent = (window.t && window.t('btn_guess')) || '猜';
             guessInput.disabled = false;
             winModal.classList.remove('show');
             loseModal.classList.remove('show');
@@ -282,7 +311,7 @@
             if (!guess || guess.length !== 1) return;
 
             guessCount++;
-            guessCountContainer.innerHTML = `第 <span id="guessCount">${guessCount}</span> 次`;
+            updateGuessCountDisplay(guessCount);
 
             // 提取猜测字的路径并计算相似度
             const guessPaths = extractClosedPaths(currentFont, guess, 200, 8);
@@ -344,7 +373,7 @@
             guessInput.value = '';
             isShowingResult = false;
             clearCountdown();
-            guessBtn.textContent = '猜';
+            guessBtn.textContent = (window.t && window.t('btn_guess')) || '猜';
             guessInput.focus();
         }
 
@@ -371,7 +400,8 @@
         }
 
         function updateCountdownDisplay() {
-            guessBtn.textContent = `继续(${countdownValue})`;
+            const continueText = (window.t && window.t('btn_continue')) || '继续';
+            guessBtn.textContent = `${continueText}(${countdownValue})`;
         }
 
         function buildPathColors(paths, nestingLevels, matchScores) {
@@ -1400,7 +1430,8 @@
 
         function displayCandidates(matches) {
             if (matches.length === 0) {
-                handwriteCandidates.innerHTML = '<span class="handwrite-placeholder">未识别到汉字</span>';
+                const msg = (window.t && window.t('handwrite_no_result')) || '未识别到汉字';
+                handwriteCandidates.innerHTML = `<span class="handwrite-placeholder">${msg}</span>`;
                 return;
             }
             

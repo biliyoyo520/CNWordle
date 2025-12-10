@@ -12,8 +12,8 @@
     <!-- 加载浮窗 -->
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-content">
-            <div class="loading-title">汉字 Wordle</div>
-            <div class="loading-message" id="loadingMessage">正在加载字体...</div>
+            <div class="loading-title" data-i18n="title">汉字 Wordle</div>
+            <div class="loading-message" id="loadingMessage" data-i18n="loading_font">正在加载字体...</div>
             <div class="loading-progress-container">
                 <div class="loading-progress-bar indeterminate" id="loadingProgressBar"></div>
             </div>
@@ -32,34 +32,39 @@
                         <path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>
                     </svg>
                 </button>
-                <div class="header-title">汉字 Wordle</div>
-                <button class="header-btn" id="themeBtn" aria-label="切换主题">
-                    <!-- 半太阳半月亮（跟随系统） -->
-                    <svg class="theme-icon active" id="iconAuto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <defs>
-                            <clipPath id="leftHalf"><rect x="0" y="0" width="12" height="24"/></clipPath>
-                            <clipPath id="rightHalf"><rect x="12" y="0" width="12" height="24"/></clipPath>
-                        </defs>
-                        <!-- 左半边：太阳 -->
-                        <g clip-path="url(#leftHalf)">
+                <div class="header-title" data-i18n="header_title">汉字 Wordle</div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="header-btn" id="langBtn" aria-label="Switch Language">
+                        <span id="langIcon" style="font-size: 1.2rem; font-weight: bold;">中</span>
+                    </button>
+                    <button class="header-btn" id="themeBtn" aria-label="切换主题">
+                        <!-- 半太阳半月亮（跟随系统） -->
+                        <svg class="theme-icon active" id="iconAuto" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <defs>
+                                <clipPath id="leftHalf"><rect x="0" y="0" width="12" height="24"/></clipPath>
+                                <clipPath id="rightHalf"><rect x="12" y="0" width="12" height="24"/></clipPath>
+                            </defs>
+                            <!-- 左半边：太阳 -->
+                            <g clip-path="url(#leftHalf)">
+                                <circle cx="12" cy="12" r="5" fill="currentColor"/>
+                                <path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </g>
+                            <!-- 右半边：月亮 -->
+                            <g clip-path="url(#rightHalf)">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/>
+                            </g>
+                        </svg>
+                        <!-- 太阳（亮色模式） -->
+                        <svg class="theme-icon" id="iconLight" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                             <circle cx="12" cy="12" r="5" fill="currentColor"/>
                             <path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                        </g>
-                        <!-- 右半边：月亮 -->
-                        <g clip-path="url(#rightHalf)">
+                        </svg>
+                        <!-- 月亮（暗色模式） -->
+                        <svg class="theme-icon" id="iconDark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/>
-                        </g>
-                    </svg>
-                    <!-- 太阳（亮色模式） -->
-                    <svg class="theme-icon" id="iconLight" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="5" fill="currentColor"/>
-                        <path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                    <!-- 月亮（暗色模式） -->
-                    <svg class="theme-icon" id="iconDark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/>
-                    </svg>
-                </button>
+                        </svg>
+                    </button>
+                </div>
             </header>
 
             <!-- 输入区域 -->
@@ -70,9 +75,9 @@
                 </div>
                 <div class="guess-count" id="guessCountContainer">第 <span id="guessCount">0</span> 次</div>
                 <div class="input-controls">
-                    <button id="guessBtn" class="guess-btn" disabled>猜</button>
-                    <button id="giveUpBtn" class="give-up-btn">认输</button>
-                    <button id="handwriteBtn" class="handwrite-btn">✏️ 手写</button>
+                    <button id="guessBtn" class="guess-btn" disabled data-i18n="btn_guess">猜</button>
+                    <button id="giveUpBtn" class="give-up-btn" data-i18n="btn_give_up">认输</button>
+                    <button id="handwriteBtn" class="handwrite-btn" data-i18n="btn_handwrite">✏️ 手写</button>
                 </div>
             </section>
 
@@ -80,15 +85,15 @@
             <div class="legend">
                 <div class="legend-item">
                     <div class="legend-color high"></div>
-                    <span>完全匹配</span>
+                    <span data-i18n="legend_exact">完全匹配</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color medium"></div>
-                    <span>部分相似</span>
+                    <span data-i18n="legend_partial">部分相似</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-color low"></div>
-                    <span>不匹配</span>
+                    <span data-i18n="legend_none">不匹配</span>
                 </div>
             </div>
 
@@ -104,7 +109,7 @@
     <!-- 详情面板/侧边栏 -->
     <aside class="detail-panel" id="detailPanel">
         <div class="detail-header">
-            <span class="detail-title">详情</span>
+            <span class="detail-title" data-i18n="detail_title">详情</span>
             <button class="close-btn" id="detailCloseBtn">&times;</button>
         </div>
         <div class="detail-content">
@@ -115,43 +120,43 @@
                 <!-- 相似度列表 -->
             </div>
         </div>
-        <div class="detail-warning" id="detailWarning">⚠️ 该字不在选字列表中</div>
+        <div class="detail-warning" id="detailWarning" data-i18n="detail_warning">⚠️ 该字不在选字列表中</div>
     </aside>
 
     <!-- 帮助弹窗 -->
     <div class="help-modal-overlay" id="helpModal">
         <div class="help-modal">
             <button class="help-modal-close" id="helpCloseBtn">&times;</button>
-            <div class="help-modal-title">🎯 如何游戏</div>
+            <div class="help-modal-title" data-i18n="help_title">🎯 如何游戏</div>
             <div class="help-modal-content">
-                <p>猜出隐藏的汉字！每次猜测后，系统会根据<strong>字形相似度</strong>给出提示。</p>
+                <p data-i18n="help_intro">猜出隐藏的汉字！每次猜测后，系统会根据<strong>字形相似度</strong>给出提示。</p>
                 
-                <h4>颜色含义</h4>
+                <h4 data-i18n="help_color_title">颜色含义</h4>
                 <div class="help-color-legend">
                     <div class="help-color-item">
                         <div class="help-color-box green"></div>
-                        <span>部件完全匹配（≥99%）</span>
+                        <span data-i18n="help_color_exact">部件完全匹配（≥99%）</span>
                     </div>
                     <div class="help-color-item">
                         <div class="help-color-box yellow"></div>
-                        <span>部件部分相似（66%-99%）</span>
+                        <span data-i18n="help_color_partial">部件部分相似（66%-99%）</span>
                     </div>
                     <div class="help-color-item">
                         <div class="help-color-box gray"></div>
-                        <span>部件不匹配（<66%）</span>
+                        <span data-i18n="help_color_none">部件不匹配（<66%）</span>
                     </div>
                 </div>
 
-                <h4>边框含义</h4>
-                <p>• <strong style="color: var(--color-correct)">绿色边框</strong>：恭喜！你猜对了！</p>
-                <p>• <strong style="color: var(--color-present)">黄色边框</strong>：这个字不在目标词库中</p>
+                <h4 data-i18n="help_border_title">边框含义</h4>
+                <p data-i18n="help_border_green">• <strong style="color: var(--color-correct)">绿色边框</strong>：恭喜！你猜对了！</p>
+                <p data-i18n="help_border_yellow">• <strong style="color: var(--color-present)">黄色边框</strong>：这个字不在目标词库中</p>
 
-                <h4>操作方式</h4>
-                <p>• 输入汉字后，按回车或点击「猜」按钮提交</p>
-                <p>• 输入后3秒会自动提交</p>
-                <p>• 点击历史格子可查看详情</p>
+                <h4 data-i18n="help_action_title">操作方式</h4>
+                <p data-i18n="help_action_1">• 输入汉字后，按回车或点击「猜」按钮提交</p>
+                <p data-i18n="help_action_2">• 输入后3秒会自动提交</p>
+                <p data-i18n="help_action_3">• 点击历史格子可查看详情</p>
             </div>
-            <button class="help-modal-btn" id="helpGotItBtn">我知道了</button>
+            <button class="help-modal-btn" id="helpGotItBtn" data-i18n="btn_got_it">我知道了</button>
         </div>
     </div>
 
@@ -159,12 +164,12 @@
     <div class="modal-overlay" id="winModal">
         <div class="modal">
             <button class="modal-close" id="modalCloseBtn">&times;</button>
-            <div class="modal-title">🎉 你赢了！</div>
+            <div class="modal-title" data-i18n="win_title">🎉 你赢了！</div>
             <div class="modal-target" id="modalTarget"></div>
             <div class="modal-message">
                 你用了 <strong id="modalGuessCount">0</strong> 次猜测找到了答案！
             </div>
-            <button class="modal-btn" id="playAgainBtn">再来一局</button>
+            <button class="modal-btn" id="playAgainBtn" data-i18n="btn_play_again">再来一局</button>
         </div>
     </div>
 
@@ -172,12 +177,12 @@
     <div class="modal-overlay" id="loseModal">
         <div class="modal">
             <button class="modal-close" id="loseModalCloseBtn">&times;</button>
-            <div class="modal-title">😔 认输了</div>
+            <div class="modal-title" data-i18n="lose_title">😔 认输了</div>
             <div class="modal-target" id="loseModalTarget"></div>
             <div class="modal-message">
                 答案是上面这个字，你猜了 <strong id="loseModalGuessCount">0</strong> 次
             </div>
-            <button class="modal-btn" id="losePlayAgainBtn">再来一局</button>
+            <button class="modal-btn" id="losePlayAgainBtn" data-i18n="btn_play_again">再来一局</button>
         </div>
     </div>
 
@@ -185,32 +190,33 @@
     <div class="handwrite-modal" id="handwriteModal">
         <div class="handwrite-panel">
             <div class="handwrite-header">
-                <span class="handwrite-title">✏️ 手写输入</span>
+                <span class="handwrite-title" data-i18n="handwrite_title">✏️ 手写输入</span>
                 <button class="handwrite-close" id="handwriteCloseBtn" tabindex="-1">&times;</button>
             </div>
             <div class="handwrite-engine-selector">
-                <span>识别引擎:</span>
+                <span data-i18n="engine_label">识别引擎:</span>
                 <select id="handwriteEngineSelect" tabindex="-1">
-                    <option value="hanzilookup">基础 (离线)</option>
-                    <option value="proxy">代理 (在线)</option>
-                    <option value="google" selected>Google (直连)</option>
+                    <option value="hanzilookup" data-i18n="engine_basic">基础 (离线)</option>
+                    <option value="proxy" data-i18n="engine_proxy">代理 (在线)</option>
+                    <option value="google" selected data-i18n="engine_google">Google (直连)</option>
                 </select>
-                <span class="handwrite-engine-status" id="handwriteEngineStatus">就绪</span>
+                <span class="handwrite-engine-status" id="handwriteEngineStatus" data-i18n="engine_status_ready">就绪</span>
             </div>
             <div class="handwrite-canvas-container">
                 <canvas id="handwriteCanvas" width="256" height="256" tabindex="-1"></canvas>
             </div>
             <div class="handwrite-controls">
-                <button class="handwrite-control-btn" id="handwriteUndoBtn" tabindex="-1">撤销</button>
-                <button class="handwrite-control-btn" id="handwriteClearBtn" tabindex="-1">清空</button>
+                <button class="handwrite-control-btn" id="handwriteUndoBtn" tabindex="-1" data-i18n="btn_undo">撤销</button>
+                <button class="handwrite-control-btn" id="handwriteClearBtn" tabindex="-1" data-i18n="btn_clear">清空</button>
             </div>
             <div class="handwrite-candidates" id="handwriteCandidates">
-                <span class="handwrite-placeholder">在上方书写汉字</span>
+                <span class="handwrite-placeholder" data-i18n="handwrite_placeholder">在上方书写汉字</span>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.4/dist/opentype.min.js"></script>
+    <script src="i18n/i18n.js"></script>
     <script src="./index.js"></script>
 </body>
 </html>
