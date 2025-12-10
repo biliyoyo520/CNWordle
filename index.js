@@ -223,8 +223,8 @@
         // ==================== 字体加载 ====================
         async function loadFont() {
             const presetFonts = [
+                'https://magenta-accessible-gibbon-63.mypinata.cloud/ipfs/bafybeignufq4erz4kdagtwi3vxu2k47fjhnfv6c6cyfhxugii72ikbzcua',
                 'fonts/NotoSerifCJKsc-ExtraLight.otf',
-                'fonts/NotoSerifCJK-Regular.ttc',
             ];
 
             for (let i = 0; i < presetFonts.length; i++) {
