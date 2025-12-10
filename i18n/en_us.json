@@ -3,6 +3,7 @@
     "loading_font": "Loading fonts...",
     "loading_complete": "Loaded!",
     "loading_error": "Font loading failed, please refresh.",
+    "loading_timeout_warning": "Taking too long? Try <a href='javascript:location.reload()'>refreshing</a> or <a href='https://github.com/biliyoyo520/CNWordle/issues' target='_blank' rel='noopener'>report an issue</a>",
     "downloading_font": "Downloading fonts...",
     "parsing_font": "Parsing fonts...",
     "header_title": "Hanzi Wordle",

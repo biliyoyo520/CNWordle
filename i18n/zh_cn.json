@@ -3,6 +3,7 @@
     "loading_font": "正在加载字体...",
     "loading_complete": "加载完成!",
     "loading_error": "字体加载失败，请刷新页面",
+    "loading_timeout_warning": "加载时间较长？尝试<a href='javascript:location.reload()'>刷新页面</a>或<a href='https://github.com/biliyoyo520/CNWordle/issues' target='_blank' rel='noopener'>反馈问题</a>",
     "downloading_font": "正在下载字体...",
     "parsing_font": "正在解析字体...",
     "header_title": "汉字 Wordle",

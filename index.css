@@ -1021,6 +1021,23 @@
             }
         }
 
+        .loading-timeout-warning {
+            display: none;
+            font-size: 0.85rem;
+            color: var(--color-text-secondary);
+            margin-top: 16px;
+            line-height: 1.5;
+        }
+
+        .loading-timeout-warning a {
+            color: var(--color-present);
+            text-decoration: underline;
+        }
+
+        .loading-timeout-warning a:hover {
+            color: var(--color-correct);
+        }
+
         /* 详情面板警告 */
         .detail-warning {
             display: none;

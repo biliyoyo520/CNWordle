@@ -168,10 +168,24 @@
             }
         }
 
+        let loadingTimeoutTimer = null;
+        const loadingTimeoutWarning = document.getElementById('loadingTimeoutWarning');
+        const FONT_DEFAULT_SIZE_KB = 20905; // 默认字体大小（KB），用于无法获取content-length时估算进度
+
         function showLoading(message) {
             loadingMessage.textContent = message;
             loadingProgressBar.classList.add('indeterminate');
             loadingOverlay.classList.remove('hidden');
+            
+            // 60秒后显示超时提示
+            clearTimeout(loadingTimeoutTimer);
+            loadingTimeoutTimer = setTimeout(() => {
+                if (loadingTimeoutWarning) {
+                    loadingTimeoutWarning.innerHTML = (window.t && window.t('loading_timeout_warning')) || 
+                        "加载时间较长？尝试<a href='javascript:location.reload()'>刷新页面</a>或<a href='https://github.com/biliyoyo520/CNWordle/issues' target='_blank' rel='noopener'>反馈问题</a>";
+                    loadingTimeoutWarning.style.display = 'block';
+                }
+            }, 60000);
         }
 
         function updateLoadingProgress(percent, message) {
@@ -181,6 +195,8 @@
         }
 
         function hideLoading() {
+            clearTimeout(loadingTimeoutTimer);
+            if (loadingTimeoutWarning) loadingTimeoutWarning.style.display = 'none';
             updateLoadingProgress(100, (window.t && window.t('loading_complete')) || '加载完成!');
             setTimeout(() => {
                 loadingOverlay.classList.add('hidden');
@@ -252,16 +268,35 @@
                             currentFont = opentype.parse(arrayBuffer.buffer);
                         }
                     } else {
-                        // 不支持进度，使用伪进度
-                        const arrayBuffer = await response.arrayBuffer();
+                        // 不支持进度（流传输），使用默认字体大小估算
+                        const total = FONT_DEFAULT_SIZE_KB * 1024; // 转换为字节
+                        const reader = response.body.getReader();
+                        let received = 0;
+                        const chunks = [];
+                        
+                        while (true) {
+                            const { done, value } = await reader.read();
+                            if (done) break;
+                            chunks.push(value);
+                            received += value.length;
+                            const percent = Math.min(Math.round((received / total) * 70) + 20, 89);
+                            updateLoadingProgress(percent, `${(window.t && window.t('downloading_font')) || '正在下载字体...'} ${Math.round(received / 1024)}KB / ~${FONT_DEFAULT_SIZE_KB}KB`);
+                        }
+                        
+                        const arrayBuffer = new Uint8Array(received);
+                        let position = 0;
+                        for (const chunk of chunks) {
+                            arrayBuffer.set(chunk, position);
+                            position += chunk.length;
+                        }
                         
                         updateLoadingProgress(90, (window.t && window.t('parsing_font')) || '正在解析字体...');
 
                         try {
-                            const fonts = opentype.parseCollection(arrayBuffer);
+                            const fonts = opentype.parseCollection(arrayBuffer.buffer);
                             currentFont = fonts[0];
                         } catch (e) {
-                            currentFont = opentype.parse(arrayBuffer);
+                            currentFont = opentype.parse(arrayBuffer.buffer);
                         }
                     }
 
