@@ -89,4 +89,4 @@ CNWordle/
 
 ## 许可证
 
-MIT License
+GPLv2 License
