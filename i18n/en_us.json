@@ -34,6 +34,8 @@
     "win_title": "🎉 You Won!",
     "win_message": "You found the answer in <strong id=\"modalGuessCount\">{0}</strong> guesses!",
     "btn_play_again": "Play Again",
+    "btn_restart_win": "Again",
+    "btn_restart_lose": "Rematch",
     "lose_title": "😔 Game Over",
     "lose_message": "The answer was the character above. You guessed <strong id=\"loseModalGuessCount\">{0}</strong> times.",
     "handwrite_title": "✏️ Handwriting",

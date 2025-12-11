@@ -321,6 +321,7 @@
             inputSvgOverlay.classList.remove('show');
             inputSvgOverlay.innerHTML = '';
             guessBtn.textContent = (window.t && window.t('btn_guess')) || '猜';
+            guessBtn.onclick = null; // 重置按钮点击事件
             guessInput.disabled = false;
             winModal.classList.remove('show');
             loseModal.classList.remove('show');
@@ -376,16 +377,20 @@
             updateHistoryGrid();
 
             // 显示SVG覆盖（包含倒计时）
-            showInputSvgOverlay(guessPaths, guessNestingLevels, matchScores);
+            const isCorrectGuess = guess === targetChar;
+            showInputSvgOverlay(guessPaths, guessNestingLevels, matchScores, isCorrectGuess);
 
-            if (guess === targetChar) {
+            if (isCorrectGuess) {
                 gameWon = true;
                 clearCountdown(); // 猜对了不需要倒计时
+                // 更新按钮文本为"重来"
+                guessBtn.textContent = (window.t && window.t('btn_restart_win')) || '重来';
+                guessBtn.onclick = startNewGame;
                 setTimeout(showWinModal, 1500);
             }
         }
 
-        function showInputSvgOverlay(paths, nestingLevels, matchScores) {
+        function showInputSvgOverlay(paths, nestingLevels, matchScores, isCorrect = false) {
             const pathColors = buildPathColors(paths, nestingLevels, matchScores);
             const svg = createFullGlyphSvg(paths, nestingLevels, pathColors, 70);
             
@@ -395,21 +400,34 @@
             guessInput.classList.add('has-svg');
             isShowingResult = true;
             
+            // 猜对时只变边框为绿色，背景保持黑/白
+            if (isCorrect) {
+                inputSvgOverlay.classList.add('correct');
+            } else {
+                inputSvgOverlay.classList.remove('correct');
+            }
+            
             // 开始倒计时
             startCountdown();
             
-            // 保持输入框焦点，不禁用它
-            guessInput.focus();
+            // 保持输入框焦点，不禁用它（但仅当手写板未打开时）
+            if (!handwriteModal.classList.contains('show')) {
+                guessInput.focus();
+            }
         }
 
         function hideInputSvgOverlay() {
             inputSvgOverlay.classList.remove('show');
+            inputSvgOverlay.classList.remove('correct');
             guessInput.classList.remove('has-svg');
             guessInput.value = '';
             isShowingResult = false;
             clearCountdown();
             guessBtn.textContent = (window.t && window.t('btn_guess')) || '猜';
-            guessInput.focus();
+            // 仅当手写板未打开时才聚焦输入框，避免移动端弹出软键盘
+            if (!handwriteModal.classList.contains('show')) {
+                guessInput.focus();
+            }
         }
 
         function startCountdown() {
@@ -575,6 +593,10 @@
             
             // 更新显示为答案
             guessCountContainer.innerHTML = `答案是「<span class="answer-char">${targetChar}</span>」<br>你猜了${guessCount}次`;
+            
+            // 更新按钮文本为"不服"
+            guessBtn.textContent = (window.t && window.t('btn_restart_lose')) || '不服';
+            guessBtn.onclick = startNewGame;
             
             showLoseModal();
         }

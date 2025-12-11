@@ -34,6 +34,8 @@
     "win_title": "🎉 你赢了！",
     "win_message": "你用了 <strong id=\"modalGuessCount\">{0}</strong> 次猜测找到了答案！",
     "btn_play_again": "再来一局",
+    "btn_restart_win": "重来",
+    "btn_restart_lose": "不服",
     "lose_title": "😔 认输了",
     "lose_message": "答案是上面这个字，你猜了 <strong id=\"loseModalGuessCount\">{0}</strong> 次",
     "handwrite_title": "✏️ 手写输入",

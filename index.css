@@ -187,6 +187,10 @@
             display: flex;
         }
 
+        .input-svg-overlay.correct {
+            border-color: var(--color-correct);
+        }
+
         .input-svg-overlay svg {
             width: 70px;
             height: 70px;
@@ -283,8 +287,8 @@
         }
 
         .history-tile.correct {
-            background-color: var(--color-correct);
             border-color: var(--color-correct);
+            border-width: 3px;
         }
 
         .history-tile svg {
