@@ -695,19 +695,18 @@
 
         function renderCharList() {
             charListGrid.innerHTML = '';
-            
-            // 获取主题文字颜色
+            // 获取主题文字颜色，兼容部分浏览器/暗色模式
             const computedStyle = getComputedStyle(document.documentElement);
-            const textColor = computedStyle.getPropertyValue('--color-text').trim();
-            
+            let textColor = computedStyle.getPropertyValue('--color-text').trim();
+            if (!textColor || textColor === 'initial' || textColor === 'inherit') {
+                textColor = document.body.classList.contains('dark-mode') ? '#fff' : '#000';
+            }
             commonChars.split('').forEach(char => {
                 const tile = document.createElement('div');
                 tile.className = 'charlist-tile';
-                
                 // 创建SVG显示汉字
                 const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
                 svg.setAttribute('viewBox', '0 0 1000 1000');
-                
                 const glyph = currentFont.charToGlyph(char);
                 if (glyph && glyph.path) {
                     const pathData = glyph.path.toPathData();
@@ -718,7 +717,6 @@
                     path.setAttribute('fill', textColor);
                     svg.appendChild(path);
                 }
-                
                 tile.appendChild(svg);
                 charListGrid.appendChild(tile);
             });
