@@ -10,9 +10,10 @@
         let isShowingResult = false; // 是否在显示结果（继续状态）
         let countdownTimer = null; // 倒计时计时器
         let countdownValue = 3; // 倒计时值
+        let currentDetailData = null; // 当前详情面板显示的数据
 
         // 常用汉字列表
-        const commonChars = '的一了在人他这个们为国地到以时要就会可你对能得着过后作道行然家方多经么去法学如同现没动起分还进好小部些主理心她前但因只从想实日军意力它把机公使情明性全三点外将高间问很最应战向头体相见被利什二等产或新制加斯月话合回特代信给位次度门任常海通教儿提立员解真论义几口认条平气题活尔别打变神总何数安少结受量感务做接场件计管期德资命金指许统区保至队形社便空决治展马科司眼书则听却达光放强即权思完设式路记南品住告类据程北边张该交规拉格望觉领共确传师观清今切院让识京口水沝淼火炎焱燚炏';
+        const commonChars = '的一了在人他这个们为国地到以时要就会可你对能得着过后作道行然家方多经么去法学如同现没动起分还进好小部些主理心她前但因只从想实日军意力它把机公使情明性全三点外将高间问很最应战向头体相见被利什二等产或新制加斯月话合回特代信给位次度门任常海通教儿提立员解真论义几口认条平气题活尔别打变神总何数安少结受量感务做接场件计管期德资命金指许统区保至队形社便空决治展马科司基眼书非则听却达光放强即权思完设式路记南品住告类据程北边张该交规拉格望觉领共确传师观清今切院让识京口水沝淼㵘火炎焱燚炏';
 
         // ==================== DOM 元素 ====================
         const guessInput = document.getElementById('guessInput');
@@ -33,6 +34,7 @@
         const playAgainBtn = document.getElementById('playAgainBtn');
         const modalCloseBtn = document.getElementById('modalCloseBtn');
         const themeBtn = document.getElementById('themeBtn');
+        const colorBlindBtn = document.getElementById('colorBlindBtn');
         const helpBtn = document.getElementById('helpBtn');
         const helpModal = document.getElementById('helpModal');
         const helpCloseBtn = document.getElementById('helpCloseBtn');
@@ -46,6 +48,9 @@
         const iconLight = document.getElementById('iconLight');
         const iconDark = document.getElementById('iconDark');
         const detailWarning = document.getElementById('detailWarning');
+        const charListModal = document.getElementById('charListModal');
+        const charListGrid = document.getElementById('charListGrid');
+        const charListCloseBtn = document.getElementById('charListCloseBtn');
         const helpGotItBtn = document.getElementById('helpGotItBtn');
         const handwriteBtn = document.getElementById('handwriteBtn');
         const handwriteModal = document.getElementById('handwriteModal');
@@ -77,6 +82,7 @@
         let systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         let helpCountdownTimer = null;
         let helpCountdownValue = 10;
+        let colorBlindMode = localStorage.getItem('colorBlindMode') === 'true';
 
         // ==================== 初始化 ====================
         const loadingOverlay = document.getElementById('loadingOverlay');
@@ -432,9 +438,12 @@
             const guessPaths = extractClosedPaths(currentFont, guess, 200, 8);
             const guessNestingLevels = determineNestingLevelsLocal(guessPaths);
 
+            // 使用形状+语义比较计算相似度
             const { matchScores } = compareGlyphPaths(
                 targetPaths.filter((_, i) => targetNestingLevels[i] % 2 === 0),
-                guessPaths.filter((_, i) => guessNestingLevels[i] % 2 === 0)
+                guessPaths.filter((_, i) => guessNestingLevels[i] % 2 === 0),
+                targetChar,
+                guess
             );
 
             // 构建猜测数据
@@ -544,7 +553,7 @@
                     const score = matchScores[visibleIndex] || 0;
                     const level = getMatchLevel(score);
                     pathColors[index] = {
-                        color: getMatchColor(level),
+                        color: getMatchColor(level, score),
                         score: score,
                         level: level
                     };
@@ -584,6 +593,7 @@
 
         // ==================== 详情面板 ====================
         function openDetailPanel(data) {
+            currentDetailData = data; // 保存当前数据用于刷新
             // 构建SVG，给每个路径添加ID
             const pathColors = buildPathColors(data.paths, data.nestingLevels, data.matchScores);
             const svg = createFullGlyphSvgWithIds(data.paths, data.nestingLevels, pathColors, 120);
@@ -650,6 +660,68 @@
             detailPanel.classList.remove('open');
             overlay.classList.remove('show');
             appContainer.classList.remove('sidebar-open');
+        }
+
+        // ==================== 汉字列表浮窗 ====================
+        function toggleCharListModal() {
+            // 如果已经打开就关闭
+            if (charListModal.classList.contains('show')) {
+                closeCharListModal();
+                return;
+            }
+            
+            // 关闭其他可能打开的弹窗
+            closeAllModals();
+            
+            // 渲染汉字列表
+            renderCharList();
+            
+            // 显示浮窗
+            charListModal.classList.add('show');
+        }
+
+        function closeCharListModal() {
+            charListModal.classList.remove('show');
+        }
+
+        function closeAllModals() {
+            // 关闭所有浮窗（不包括详情面板）
+            winModal.classList.remove('show');
+            loseModal.classList.remove('show');
+            helpModal.classList.remove('show');
+            charListModal.classList.remove('show');
+            handwriteModal.classList.remove('show');
+        }
+
+        function renderCharList() {
+            charListGrid.innerHTML = '';
+            
+            // 获取主题文字颜色
+            const computedStyle = getComputedStyle(document.documentElement);
+            const textColor = computedStyle.getPropertyValue('--color-text').trim();
+            
+            commonChars.split('').forEach(char => {
+                const tile = document.createElement('div');
+                tile.className = 'charlist-tile';
+                
+                // 创建SVG显示汉字
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('viewBox', '0 0 1000 1000');
+                
+                const glyph = currentFont.charToGlyph(char);
+                if (glyph && glyph.path) {
+                    const pathData = glyph.path.toPathData();
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    // 翻转路径
+                    path.setAttribute('d', pathData);
+                    path.setAttribute('transform', 'scale(1, -1) translate(0, -800)');
+                    path.setAttribute('fill', textColor);
+                    svg.appendChild(path);
+                }
+                
+                tile.appendChild(svg);
+                charListGrid.appendChild(tile);
+            });
         }
 
         // ==================== 弹窗 ====================
@@ -729,6 +801,15 @@
             detailCloseBtn.addEventListener('click', closeDetailPanel);
             overlay.addEventListener('click', closeDetailPanel);
 
+            // 汉字列表浮窗
+            detailWarning.addEventListener('click', toggleCharListModal);
+            charListCloseBtn.addEventListener('click', closeCharListModal);
+            charListModal.addEventListener('click', (e) => {
+                if (e.target === charListModal) {
+                    closeCharListModal();
+                }
+            });
+
             playAgainBtn.addEventListener('click', startNewGame);
             modalCloseBtn.addEventListener('click', () => winModal.classList.remove('show'));
 
@@ -759,6 +840,26 @@
                 themeState = (themeState + 1) % 3;
                 applyTheme();
             });
+
+            // 色盲模式切换
+            colorBlindBtn.addEventListener('click', () => {
+                colorBlindMode = !colorBlindMode;
+                localStorage.setItem('colorBlindMode', colorBlindMode);
+                applyColorBlindMode();
+                // 刷新历史显示以应用新颜色
+                updateHistoryGrid();
+                if (isShowingResult && guessHistory.length > 0) {
+                    const lastGuess = guessHistory[0];
+                    showInputSvgOverlay(lastGuess.paths, lastGuess.nestingLevels, lastGuess.matchScores, lastGuess.isCorrect);
+                }
+                // 刷新详情面板
+                if (currentDetailData && detailPanel.classList.contains('open')) {
+                    openDetailPanel(currentDetailData);
+                }
+            });
+
+            // 初始化色盲模式
+            applyColorBlindMode();
 
             // 监听系统主题变化
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
@@ -801,6 +902,16 @@
                     document.body.classList.add('light-mode');
                     iconLight.classList.add('active');
                 }
+            }
+        }
+
+        function applyColorBlindMode() {
+            if (colorBlindMode) {
+                document.body.classList.add('color-blind-mode');
+                colorBlindBtn.classList.add('active');
+            } else {
+                document.body.classList.remove('color-blind-mode');
+                colorBlindBtn.classList.remove('active');
             }
         }
 
@@ -924,15 +1035,35 @@
 
             const closedPaths = subPaths.filter(sp => sp.closed);
 
+            // 计算整个字形的边界框
+            const allPoints = closedPaths.flatMap(sp => getPointsFromCommands(sp.commands));
+            const glyphBounds = getPathBoundsLocal(allPoints);
+            const glyphWidth = glyphBounds ? (glyphBounds.maxX - glyphBounds.minX) : 1;
+            const glyphHeight = glyphBounds ? (glyphBounds.maxY - glyphBounds.minY) : 1;
+            const glyphArea = glyphWidth * glyphHeight || 1;
+
             return closedPaths.map(sp => {
                 const points = getPointsFromCommands(sp.commands);
                 const bounds = getPathBoundsLocal(points);
+                const pathWidth = bounds ? (bounds.maxX - bounds.minX) : 0;
+                const pathHeight = bounds ? (bounds.maxY - bounds.minY) : 0;
+                const pathArea = pathWidth * pathHeight || 0;
+                
+                // 计算零件相对于整个字形的大小比例 (0-1)
+                const relativeSize = pathArea / glyphArea;
+                
+                // 计算零件中心点相对于字形的位置 (0-1)
+                const centerX = bounds ? ((bounds.minX + bounds.maxX) / 2 - glyphBounds.minX) / glyphWidth : 0.5;
+                const centerY = bounds ? ((bounds.minY + bounds.maxY) / 2 - glyphBounds.minY) / glyphHeight : 0.5;
+                
                 return {
                     pathString: commandsToPathString(sp.commands),
                     points,
                     commands: sp.commands,
                     bounds,
-                    normalizedPoints: normalizePoints(points, bounds)
+                    normalizedPoints: normalizePoints(points, bounds),
+                    relativeSize,  // 新增：相对大小
+                    relativeCenter: { x: centerX, y: centerY }  // 新增：相对位置
                 };
             });
         }
@@ -958,10 +1089,11 @@
             return result;
         }
 
-        function calculatePathSimilarity(path1Points, path2Points) {
+        // 简单的形状相似度计算（Hausdorff距离）- 用于单部件比较
+        function calculateShapeSimilarity(path1Points, path2Points) {
             if (path1Points.length === 0 || path2Points.length === 0) return 0;
 
-            const sampleCount = 20;
+            const sampleCount = 30;
             const sample1 = samplePoints(path1Points, sampleCount);
             const sample2 = samplePoints(path2Points, sampleCount);
 
@@ -984,33 +1116,126 @@
             }
 
             const avgDist = (totalDist1to2 + totalDist2to1) / (2 * sampleCount);
-            return Math.exp(-avgDist * 5) * 100;
+            return Math.exp(-avgDist * 6) * 100;
         }
 
-        function compareGlyphPaths(targetPathsFiltered, sourcePathsFiltered) {
-            const matchScores = new Array(sourcePathsFiltered.length).fill(0);
+        function compareGlyphPaths(targetPathsFiltered, sourcePathsFiltered, targetChar, guessChar) {
+            const sourceCount = sourcePathsFiltered.length;
+            const matchScores = new Array(sourceCount).fill(0);
 
-            for (let si = 0; si < sourcePathsFiltered.length; si++) {
-                let bestScore = 0;
+            // 获取语义相似度（基于部首/部件分解）
+            let semanticScore = 0;
+            if (typeof calculateRadicalSimilarity === 'function' && targetChar && guessChar) {
+                semanticScore = calculateRadicalSimilarity(targetChar, guessChar);
+            }
+
+            // 完全相同的字
+            if (targetChar === guessChar) {
+                return { matchScores: new Array(sourceCount).fill(100) };
+            }
+
+            // 形状比较逻辑
+            for (let si = 0; si < sourceCount; si++) {
+                let bestShapeScore = 0;
                 for (let ti = 0; ti < targetPathsFiltered.length; ti++) {
-                    const similarity = calculatePathSimilarity(
+                    const shapeSim = calculateShapeSimilarity(
                         targetPathsFiltered[ti].normalizedPoints,
                         sourcePathsFiltered[si].normalizedPoints
                     );
-                    bestScore = Math.max(bestScore, similarity);
+                    
+                    // 大小相似度
+                    const sizeRatio = Math.min(targetPathsFiltered[ti].relativeSize, sourcePathsFiltered[si].relativeSize) / 
+                                      Math.max(targetPathsFiltered[ti].relativeSize, sourcePathsFiltered[si].relativeSize) || 0;
+                    
+                    // 大小惩罚 - 当语义相似度高时更宽松
+                    let sizePenalty = 1.0;
+                    if (semanticScore >= 70) {
+                        if (sizeRatio < 0.1) sizePenalty = 0.7;
+                        else if (sizeRatio < 0.3) sizePenalty = 0.85;
+                        else sizePenalty = 0.95;
+                    } else {
+                        if (sizeRatio < 0.1) sizePenalty = 0.4;
+                        else if (sizeRatio < 0.3) sizePenalty = 0.7;
+                        else if (sizeRatio < 0.5) sizePenalty = 0.85;
+                    }
+                    
+                    bestShapeScore = Math.max(bestShapeScore, shapeSim * sizePenalty);
                 }
-                matchScores[si] = bestScore;
+                
+                // 融合策略：形状为主，语义为辅
+                if (bestShapeScore >= 50) {
+                    if (semanticScore >= 80) {
+                        matchScores[si] = Math.min(100, bestShapeScore * 1.15 + semanticScore * 0.1);
+                    } else if (semanticScore >= 60) {
+                        matchScores[si] = Math.min(100, bestShapeScore * 1.08 + semanticScore * 0.05);
+                    } else {
+                        matchScores[si] = bestShapeScore;
+                    }
+                } else if (bestShapeScore >= 30 && semanticScore >= 75) {
+                    matchScores[si] = Math.max(bestShapeScore * 1.2, semanticScore * 0.7);
+                } else {
+                    matchScores[si] = bestShapeScore;
+                }
             }
             return { matchScores };
         }
 
         function getMatchLevel(score) {
-            if (score >= 99) return 'high';
-            if (score >= 66) return 'medium';
+            if (score >= 95) return 'high';
+            if (score >= 60) return 'medium';
             return 'low';
         }
 
-        function getMatchColor(level) {
+        // 根据分数生成渐变色
+        // 普通模式: 0% = 灰色, 50% = 黄/橙色, 100% = 绿色
+        // 色盲模式: 0% = 灰色, 50% = 橙色, 100% = 蓝色
+        function getGradientColor(score) {
+            // 确保分数在0-100范围内
+            score = Math.max(0, Math.min(100, score));
+            
+            let h, s, l;
+            
+            if (colorBlindMode) {
+                // 色盲模式：灰色 → 橙色 → 蓝色
+                if (score <= 50) {
+                    // 0-50%: 灰色 → 橙色
+                    const t = score / 50;
+                    h = 0 + t * 25;           // 0 → 25 (橙色)
+                    s = 0 + t * 85;           // 0% → 85%
+                    l = 50 + t * 5;           // 50% → 55%
+                } else {
+                    // 50-100%: 橙色 → 蓝色
+                    const t = (score - 50) / 50;
+                    h = 25 + t * 185;         // 25 → 210 (蓝色)
+                    s = 85 - t * 15;          // 85% → 70%
+                    l = 55 + t * 10;          // 55% → 65%
+                }
+            } else {
+                // 普通模式：灰色 → 黄色 → 绿色
+                if (score <= 50) {
+                    // 0-50%: 灰色 → 黄/橙色
+                    const t = score / 50;
+                    h = 0 + t * 45;           // 0 → 45
+                    s = 0 + t * 70;           // 0% → 70%
+                    l = 50 + t * 5;           // 50% → 55%
+                } else {
+                    // 50-100%: 黄色 → 绿色
+                    const t = (score - 50) / 50;
+                    h = 45 + t * 70;          // 45 → 115
+                    s = 70 - t * 30;          // 70% → 40%
+                    l = 55 - t * 3;           // 55% → 52%
+                }
+            }
+            
+            return `hsl(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%)`;
+        }
+
+        function getMatchColor(level, score) {
+            // 如果提供了分数，使用渐变色
+            if (typeof score === 'number') {
+                return getGradientColor(score);
+            }
+            // 降级到三色模式
             switch (level) {
                 case 'high': return 'var(--color-correct)';
                 case 'medium': return 'var(--color-present)';
