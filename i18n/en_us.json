@@ -18,7 +18,7 @@
     "legend_partial": "Partial Match",
     "legend_none": "No Match",
     "detail_title": "Details",
-    "detail_warning": "⚠️ Character not in list",
+    "detail_warning": "⚠️ Character not in result list",
     "help_title": "🎯 How to Play",
     "help_intro": "Guess the hidden Hanzi! After each guess, you get hints based on <strong>glyph similarity</strong>.",
     "help_color_title": "Colors",
