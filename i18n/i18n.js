@@ -55,7 +55,7 @@ function updatePageText() {
     // Update language button icon
     const langIcon = document.getElementById('langIcon');
     if (langIcon) {
-        langIcon.textContent = currentLang === 'zh_cn' ? '中' : 'En';
+        langIcon.textContent = currentLang === 'zh_cn' ? 'En' : '中';
     }
 }
 
