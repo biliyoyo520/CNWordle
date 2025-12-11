@@ -220,8 +220,79 @@
             }
         }
 
+        // ==================== 字体缓存 (IndexedDB) ====================
+        const FONT_CACHE_DB = 'CNWordleFontCache';
+        const FONT_CACHE_STORE = 'fonts';
+        const FONT_CACHE_KEY = 'mainFont';
+        const FONT_CACHE_VERSION = 1;
+
+        function openFontCacheDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(FONT_CACHE_DB, FONT_CACHE_VERSION);
+                request.onerror = () => reject(request.error);
+                request.onsuccess = () => resolve(request.result);
+                request.onupgradeneeded = (event) => {
+                    const db = event.target.result;
+                    if (!db.objectStoreNames.contains(FONT_CACHE_STORE)) {
+                        db.createObjectStore(FONT_CACHE_STORE);
+                    }
+                };
+            });
+        }
+
+        async function getCachedFont() {
+            try {
+                const db = await openFontCacheDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(FONT_CACHE_STORE, 'readonly');
+                    const store = tx.objectStore(FONT_CACHE_STORE);
+                    const request = store.get(FONT_CACHE_KEY);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                });
+            } catch (e) {
+                console.warn('读取字体缓存失败:', e);
+                return null;
+            }
+        }
+
+        async function setCachedFont(arrayBuffer) {
+            try {
+                const db = await openFontCacheDB();
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction(FONT_CACHE_STORE, 'readwrite');
+                    const store = tx.objectStore(FONT_CACHE_STORE);
+                    const request = store.put(arrayBuffer, FONT_CACHE_KEY);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve();
+                });
+            } catch (e) {
+                console.warn('保存字体缓存失败:', e);
+            }
+        }
+
         // ==================== 字体加载 ====================
         async function loadFont() {
+            // 先尝试从缓存加载
+            updateLoadingProgress(5, (window.t && window.t('checking_cache')) || '正在检查缓存...');
+            const cachedData = await getCachedFont();
+            if (cachedData) {
+                try {
+                    updateLoadingProgress(50, (window.t && window.t('loading_cached_font')) || '正在加载缓存字体...');
+                    try {
+                        const fonts = opentype.parseCollection(cachedData);
+                        currentFont = fonts[0];
+                    } catch (e) {
+                        currentFont = opentype.parse(cachedData);
+                    }
+                    console.log('从缓存加载字体成功');
+                    return true;
+                } catch (e) {
+                    console.warn('缓存字体解析失败，重新下载:', e);
+                }
+            }
+
+            // 缓存不存在或无效，从网络加载
             const presetFonts = [
                 'https://magenta-accessible-gibbon-63.mypinata.cloud/ipfs/bafybeignufq4erz4kdagtwi3vxu2k47fjhnfv6c6cyfhxugii72ikbzcua',
                 'fonts/NotoSerifCJKsc-ExtraLight.otf',
@@ -267,6 +338,10 @@
                         } catch (e) {
                             currentFont = opentype.parse(arrayBuffer.buffer);
                         }
+                        
+                        // 保存到缓存
+                        await setCachedFont(arrayBuffer.buffer);
+                        console.log('字体已缓存到 IndexedDB');
                     } else {
                         // 不支持进度（流传输），使用默认字体大小估算
                         const total = FONT_DEFAULT_SIZE_KB * 1024; // 转换为字节
@@ -298,6 +373,10 @@
                         } catch (e) {
                             currentFont = opentype.parse(arrayBuffer.buffer);
                         }
+                        
+                        // 保存到缓存
+                        await setCachedFont(arrayBuffer.buffer);
+                        console.log('字体已缓存到 IndexedDB');
                     }
 
                     console.log('字体加载成功:', fontPath);

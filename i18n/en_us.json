@@ -4,6 +4,8 @@
     "loading_complete": "Loaded!",
     "loading_error": "Font loading failed, please refresh.",
     "loading_timeout_warning": "Taking too long? Try <a href='javascript:location.reload()'>refreshing</a> or <a href='https://github.com/biliyoyo520/CNWordle/issues' target='_blank' rel='noopener'>report an issue</a>",
+    "checking_cache": "Checking cache...",
+    "loading_cached_font": "Loading cached font...",
     "downloading_font": "Downloading fonts...",
     "parsing_font": "Parsing fonts...",
     "header_title": "Hanzi Wordle",
