@@ -300,6 +300,7 @@
 
             // 缓存不存在或无效，从网络加载
             const presetFonts = [
+                'http://res-aliyun.yoyo250.fun/files/NotoSerifCJKsc-ExtraLight.otf',
                 'https://magenta-accessible-gibbon-63.mypinata.cloud/ipfs/bafybeignufq4erz4kdagtwi3vxu2k47fjhnfv6c6cyfhxugii72ikbzcua',
                 'fonts/NotoSerifCJKsc-ExtraLight.otf',
             ];
