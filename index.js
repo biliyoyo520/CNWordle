@@ -13,7 +13,7 @@
         let currentDetailData = null; // 当前详情面板显示的数据
 
         // 常用汉字列表
-        const commonChars = '的一了在人他这个们为国地到以时要就会可你对能得着过后作道行然家方多经么去法学如同现没动起分还进好小部些主理心她前但因只从想实日军意力它把机公使情明性全三点外将高间问很最应战向头体相见被利什二等产或新制加斯月话合回特代信给位次度门任常海通教儿提立员解真论义几口认条平气题活尔别打变神总何数安少结受量感务做接场件计管期德资命金指许统区保至队形社便空决治展马科司基眼书非则听却达光放强即权思完设式路记南品住告类据程北边张该交规拉格望觉领共确传师观清今切院让识京口水沝淼㵘火炎焱燚炏';
+        const commonChars = '的一了在人他这个们为国地到以时要就会可你对能得着过后作道行然家方多经么去法学如同现没动起分还进好小部些主理心她前但因只从想实日军意力它把机公使情明性全三点外将高间问很战向头体相见被利什二等产或新制加斯月话合回特代信给位次度门任常海通教儿提立员解真论义几口认条平气题活尔别打变神总何数安少结受量感务做接场件计管期德资命金指许统区保至队形社便空决治展马科司基眼非则听却达光放强即权思完设式路记南品住告类据程北边张该交规拉格望觉领共确传师观清今切院让识京口水沝淼㵘火炎焱燚炏池沙彩财富逗雨姐笑是处呢收资金';
 
         // ==================== DOM 元素 ====================
         const guessInput = document.getElementById('guessInput');
@@ -76,6 +76,7 @@
         const GOOGLE_IME_URL = 'https://inputtools.google.com/request?ime=handwriting&app=mobilesearch&cs=1&oe=UTF-8';
         const handwriteEngineSelect = document.getElementById('handwriteEngineSelect');
         const handwriteEngineStatus = document.getElementById('handwriteEngineStatus');
+        const dictBtn = document.getElementById('dictBtn');
 
         // 主题状态：0=跟随系统, 1=第一次点击, 2=第二次点击
         let themeState = 0;
@@ -802,6 +803,7 @@
 
             // 汉字列表浮窗
             detailWarning.addEventListener('click', toggleCharListModal);
+            dictBtn.addEventListener('click', toggleCharListModal);
             charListCloseBtn.addEventListener('click', closeCharListModal);
             charListModal.addEventListener('click', (e) => {
                 if (e.target === charListModal) {

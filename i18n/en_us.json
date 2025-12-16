@@ -21,7 +21,7 @@
     "detail_warning": "⚠️ Character not in result list",
     "charlist_title": "📋 Answer List",
     "help_title": "🎯 How to Play",
-    "help_intro": "Guess the hidden Hanzi! After each guess, you get hints based on <strong>glyph similarity</strong>.",
+    "help_intro": "Guess the hidden Hanzi! After each guess, you get hints based on <strong>font-decomposed parts</strong>.<br><br>⚠️ <strong>Note</strong>: Matching is based on actual stroke decomposition in the font file, <strong>NOT traditional radicals</strong>. We've tried to exclude connected characters from the answer list, but detection may still have bugs. If you can't find a character, click the 📖 icon in the top-left to view the answer dictionary.",
     "help_color_title": "Colors",
     "help_color_exact": "Parts Exact Match (≥99%)",
     "help_color_partial": "Parts Partial Match (66%-99%)",
