@@ -21,7 +21,7 @@
     "detail_warning": "⚠️ 该字不在答案列表中",
     "charlist_title": "📋 答案列表",
     "help_title": "🎯 如何游戏",
-    "help_intro": "猜出隐藏的汉字！每次猜测后，系统会根据<strong>字形相似度</strong>给出提示。",
+    "help_intro": "猜出隐藏的汉字！每次猜测后，系统会根据<strong>字体拆分的部件</strong>给出提示。<br><br>⚠️ <strong>注意</strong>：判断依据是字体文件中的实际笔画拆分，<strong>不是传统偏旁部首</strong>。已尽力剔除答案字典中的连体字，但检测仍可能有bug。如果实在找不到某个字，可点击左上角📖图标查看答案字典。",
     "help_color_title": "颜色含义",
     "help_color_exact": "部件完全匹配（≥99%）",
     "help_color_partial": "部件部分相似（66%-99%）",
