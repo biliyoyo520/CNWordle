@@ -12,6 +12,7 @@
     "guess_count_prefix": "Guess",
     "guess_count_suffix": "",
     "btn_guess": "Guess",
+    "btn_hint": "Hint",
     "btn_give_up": "Give Up",
     "btn_handwrite": "✏️ Draw",
     "legend_exact": "Exact Match",

@@ -6,6 +6,7 @@
         let targetNestingLevels = [];
         let currentFont = null;
         let guessHistory = []; // 存储最近15次猜测
+        let revealedHintIndices = [];
         let autoGuessTimer = null;
         let isShowingResult = false; // 是否在显示结果（继续状态）
         let countdownTimer = null; // 倒计时计时器
@@ -18,8 +19,10 @@
         // ==================== DOM 元素 ====================
         const guessInput = document.getElementById('guessInput');
         const guessBtn = document.getElementById('guessBtn');
+        const hintBtn = document.getElementById('hintBtn');
         const guessCountDisplay = document.getElementById('guessCount');
         const guessCountContainer = document.getElementById('guessCountContainer');
+        const hintDisplay = document.getElementById('hintDisplay');
         const inputSvgOverlay = document.getElementById('inputSvgOverlay');
         const historyGrid = document.getElementById('historyGrid');
         const detailPanel = document.getElementById('detailPanel');
@@ -402,7 +405,9 @@
             guessCount = 0;
             gameWon = false;
             guessHistory = [];
+            revealedHintIndices = [];
             updateGuessCountDisplay(0);
+            clearHints();
             guessInput.value = '';
             guessInput.classList.remove('has-svg');
             inputSvgOverlay.classList.remove('show');
@@ -417,6 +422,7 @@
             // 预计算目标字路径
             targetPaths = extractClosedPaths(currentFont, targetChar, 200, 8);
             targetNestingLevels = determineNestingLevelsLocal(targetPaths);
+            updateHintButtonState();
 
             // 重置历史格子
             initHistoryGrid();
@@ -473,11 +479,80 @@
             if (isCorrectGuess) {
                 gameWon = true;
                 clearCountdown(); // 猜对了不需要倒计时
-                // 更新按钮文本为"重来"
-                guessBtn.textContent = (window.t && window.t('btn_restart_win')) || '重来';
+                // 更新按钮文本为"再来"
+                guessBtn.textContent = (window.t && window.t('btn_restart_win')) || '再来';
                 guessBtn.onclick = startNewGame;
+                updateHintButtonState();
                 setTimeout(showWinModal, 1500);
             }
+        }
+
+        function clearHints() {
+            hintDisplay.innerHTML = '';
+            hintDisplay.hidden = true;
+        }
+
+        function getVisibleTargetPathIndices() {
+            return targetPaths
+                .map((_, index) => index)
+                .filter(index => targetNestingLevels[index] % 2 === 0);
+        }
+
+        function updateHintButtonState() {
+            if (!hintBtn) return;
+            const visibleIndices = getVisibleTargetPathIndices();
+            hintBtn.disabled = !targetPaths.length || gameWon || isShowingResult || visibleIndices.length <= revealedHintIndices.length;
+        }
+
+        function handleHint() {
+            if (gameWon || isShowingResult) return;
+            clearAutoGuessTimer();
+
+            const remaining = getVisibleTargetPathIndices().filter(index => !revealedHintIndices.includes(index));
+            if (!remaining.length) {
+                updateHintButtonState();
+                return;
+            }
+
+            const nextIndex = remaining[Math.floor(Math.random() * remaining.length)];
+            revealedHintIndices.push(nextIndex);
+            renderHints();
+            updateHintButtonState();
+            guessInput.focus();
+        }
+
+        function renderHints() {
+            hintDisplay.innerHTML = '';
+            hintDisplay.hidden = revealedHintIndices.length === 0;
+
+            revealedHintIndices.forEach((pathIndex, visibleIndex) => {
+                const item = document.createElement('div');
+                item.className = 'hint-piece';
+                item.title = `${(window.t && window.t('btn_hint')) || '提示'} ${visibleIndex + 1}`;
+                item.appendChild(createSinglePathSvg(targetPaths[pathIndex], 44));
+                hintDisplay.appendChild(item);
+            });
+        }
+
+        function createSinglePathSvg(pathData, displaySize = 44) {
+            const padding = 8;
+            const bounds = pathData.bounds || { minX: 0, minY: 0, maxX: 100, maxY: 100 };
+            const width = (bounds.maxX - bounds.minX) + padding * 2;
+            const height = (bounds.maxY - bounds.minY) + padding * 2;
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', displaySize);
+            svg.setAttribute('height', displaySize);
+            svg.setAttribute('viewBox', `${bounds.minX - padding} ${bounds.minY - padding} ${width} ${height}`);
+
+            const pathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            pathElement.setAttribute('d', pathData.pathString);
+            pathElement.setAttribute('fill', 'var(--color-present)');
+            pathElement.setAttribute('stroke', 'var(--color-text)');
+            pathElement.setAttribute('stroke-width', '1');
+            svg.appendChild(pathElement);
+
+            return svg;
         }
 
         function showInputSvgOverlay(paths, nestingLevels, matchScores, isCorrect = false) {
@@ -489,6 +564,7 @@
             inputSvgOverlay.classList.add('show');
             guessInput.classList.add('has-svg');
             isShowingResult = true;
+            updateHintButtonState();
             
             // 猜对时只变边框为绿色，背景保持黑/白
             if (isCorrect) {
@@ -514,6 +590,7 @@
             isShowingResult = false;
             clearCountdown();
             guessBtn.textContent = (window.t && window.t('btn_guess')) || '猜';
+            updateHintButtonState();
             // 仅当手写板未打开时才聚焦输入框，避免移动端弹出软键盘
             if (!handwriteModal.classList.contains('show')) {
                 guessInput.focus();
@@ -742,6 +819,7 @@
             // 更新按钮文本为"不服"
             guessBtn.textContent = (window.t && window.t('btn_restart_lose')) || '不服';
             guessBtn.onclick = startNewGame;
+            updateHintButtonState();
             
             showLoseModal();
         }
@@ -809,6 +887,7 @@
             modalCloseBtn.addEventListener('click', () => winModal.classList.remove('show'));
 
             // 认输按钮
+            hintBtn.addEventListener('click', handleHint);
             giveUpBtn.addEventListener('click', handleGiveUp);
             losePlayAgainBtn.addEventListener('click', startNewGame);
             loseModalCloseBtn.addEventListener('click', () => loseModal.classList.remove('show'));
