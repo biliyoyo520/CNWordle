@@ -1182,12 +1182,13 @@
 
         .charlist-tile {
             aspect-ratio: 1;
-            border: 2px solid var(--color-absent);
+            border: 2px solid var(--color-border);
             border-radius: 4px;
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: var(--color-absent);
+            background-color: var(--color-bg-secondary);
+            color: var(--color-text);
         }
 
         .charlist-tile svg {

@@ -697,12 +697,6 @@
 
         function renderCharList() {
             charListGrid.innerHTML = '';
-            // 获取主题文字颜色，兼容部分浏览器/暗色模式
-            const computedStyle = getComputedStyle(document.documentElement);
-            let textColor = computedStyle.getPropertyValue('--color-text').trim();
-            if (!textColor || textColor === 'initial' || textColor === 'inherit') {
-                textColor = document.body.classList.contains('dark-mode') ? '#fff' : '#000';
-            }
             commonChars.split('').forEach(char => {
                 const tile = document.createElement('div');
                 tile.className = 'charlist-tile';
@@ -716,7 +710,7 @@
                     // 翻转路径
                     path.setAttribute('d', pathData);
                     path.setAttribute('transform', 'scale(1, -1) translate(0, -800)');
-                    path.setAttribute('fill', textColor);
+                    path.setAttribute('fill', 'currentColor');
                     svg.appendChild(path);
                 }
                 tile.appendChild(svg);
