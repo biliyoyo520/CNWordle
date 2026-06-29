@@ -235,6 +235,54 @@
             align-items: center;
         }
 
+        .hint-display {
+            min-height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 6px 0 2px;
+        }
+
+        .hint-display[hidden] {
+            display: none;
+        }
+
+        .hint-text {
+            max-width: min(360px, 92vw);
+            padding: 8px 12px;
+            background-color: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            color: var(--color-text-secondary);
+            font-size: 0.78rem;
+            line-height: 1.35;
+            text-align: center;
+        }
+
+        .hint-text strong {
+            display: block;
+            color: var(--color-present);
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+
+        .hint-piece {
+            width: 58px;
+            height: 58px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--color-bg-secondary);
+            border: 1px solid var(--color-border-dark);
+            border-radius: 8px;
+            box-shadow: inset 0 0 0 1px var(--color-bg);
+        }
+
+        .hint-piece svg {
+            width: 52px;
+            height: 52px;
+        }
+
         .guess-btn {
             padding: 12px 24px;
             font-size: 1rem;
@@ -255,6 +303,31 @@
         .guess-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        .hint-btn {
+            padding: 12px 18px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            background-color: var(--color-present);
+            color: #111;
+            border: 1px solid var(--color-present);
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 0.86;
+            transition: opacity 0.2s, transform 0.1s, filter 0.2s;
+        }
+
+        .hint-btn:hover:not(:disabled) {
+            opacity: 1;
+            filter: saturate(1.18);
+            transform: translateY(-1px);
+        }
+
+        .hint-btn:disabled {
+            opacity: 0.42;
+            cursor: not-allowed;
+            filter: grayscale(0.35);
         }
 
         .guess-count {
@@ -670,11 +743,15 @@
             border-radius: 12px;
             padding: 24px;
             width: 90%;
-            max-width: 400px;
+            max-width: 520px;
             max-height: 80%;
             overflow-y: auto;
             position: relative;
             animation: modalPop 0.2s ease-out;
+        }
+
+        .tutorial-modal {
+            max-width: 560px;
         }
 
         .help-modal-close {
@@ -716,6 +793,31 @@
             margin-bottom: 12px;
         }
 
+        .help-tip-card {
+            padding: 10px 12px;
+            margin: 12px 0;
+            background: linear-gradient(135deg, var(--color-bg-secondary), transparent);
+            border: 1px solid var(--color-present);
+            border-radius: 8px;
+            color: var(--color-text);
+            font-size: 0.9rem;
+        }
+
+        .help-icon-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .help-icon-grid div {
+            padding: 10px;
+            background-color: var(--color-bg-secondary);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+
         .help-modal-content h4 {
             font-size: 1rem;
             margin: 16px 0 8px 0;
@@ -736,14 +838,285 @@
         }
 
         .help-color-box {
-            width: 20px;
+            width: 42px;
             height: 20px;
             border-radius: 3px;
+            border: 1px solid var(--color-border-dark);
         }
 
-        .help-color-box.green { background-color: var(--color-correct); }
-        .help-color-box.yellow { background-color: var(--color-present); }
-        .help-color-box.gray { background-color: var(--color-absent); }
+        .help-color-box.green { background: linear-gradient(90deg, var(--color-present), var(--color-correct)); }
+        .help-color-box.yellow { background: linear-gradient(90deg, var(--color-absent), var(--color-present)); }
+        .help-color-box.gray { background: linear-gradient(90deg, var(--color-bg-secondary), var(--color-absent)); }
+
+        .help-modal-actions,
+        .tutorial-actions,
+        .tutorial-coach-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .help-modal-actions .help-modal-btn,
+        .help-modal-actions .help-secondary-btn {
+            min-height: 42px;
+            margin-top: 0;
+            padding: 10px 18px;
+            line-height: 1.2;
+        }
+
+        .help-secondary-btn,
+        .tutorial-btn {
+            padding: 10px 18px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            background-color: var(--color-bg-secondary);
+            color: var(--color-text);
+            border: 1px solid var(--color-border-dark);
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .tutorial-btn:not(.secondary) {
+            background-color: var(--color-text);
+            color: var(--color-bg);
+            border-color: var(--color-text);
+        }
+
+        .tutorial-body,
+        .tutorial-card {
+            color: var(--color-text);
+            line-height: 1.55;
+        }
+
+        .tutorial-answer {
+            font-size: 4rem;
+            line-height: 1;
+            text-align: center;
+            margin: 12px 0;
+            color: var(--color-correct);
+            font-weight: bold;
+        }
+
+        .tutorial-fake-input {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 12px auto;
+            border: 2px solid var(--color-border-dark);
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .tutorial-guesses,
+        .tutorial-script {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 12px 0;
+        }
+
+        .tutorial-guesses span {
+            width: 38px;
+            height: 38px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid var(--color-border-dark);
+            border-radius: 6px;
+            background-color: var(--color-bg-secondary);
+            font-weight: bold;
+        }
+
+        .tutorial-gradient {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--color-absent), var(--color-present), var(--color-correct));
+            color: #111;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin: 12px 0;
+        }
+
+        .tutorial-coach {
+            position: fixed;
+            left: 50%;
+            bottom: 18px;
+            transform: translateX(-50%);
+            width: min(520px, calc(100vw - 24px));
+            padding: 14px;
+            background: color-mix(in srgb, var(--color-bg) 94%, transparent);
+            border: 1px solid var(--color-border-dark);
+            border-left: 4px solid var(--color-present);
+            border-radius: 12px;
+            box-shadow: 0 14px 42px rgba(0, 0, 0, 0.18);
+            backdrop-filter: blur(10px);
+            z-index: 130;
+        }
+
+        .tutorial-coach[hidden] {
+            display: none;
+        }
+
+        .tutorial-coach-title {
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: var(--color-text);
+        }
+
+        .tutorial-coach-body {
+            color: var(--color-text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.45;
+        }
+
+        .tutorial-coach-body p {
+            margin: 4px 0;
+        }
+
+        .tutorial-coach .tutorial-script {
+            justify-content: flex-start;
+            color: var(--color-text);
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .tutorial-spotlight {
+            animation: tutorialGlow 1.6s ease-in-out infinite;
+            box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-present) 55%, transparent),
+                        0 0 10px 3px color-mix(in srgb, var(--color-present) 42%, transparent) !important;
+        }
+
+        @keyframes tutorialGlow {
+            0%, 100% {
+                filter: drop-shadow(0 0 2px color-mix(in srgb, var(--color-present) 45%, transparent));
+            }
+            50% {
+                filter: drop-shadow(0 0 7px color-mix(in srgb, var(--color-present) 75%, transparent));
+            }
+        }
+
+        .debug-modal {
+            max-width: 460px;
+            padding: 22px;
+        }
+
+        .debug-lock,
+        .debug-content {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .debug-lock[hidden],
+        .debug-content[hidden] {
+            display: none;
+        }
+
+        .debug-lock input,
+        .debug-custom-target input {
+            padding: 11px 12px;
+            background-color: var(--color-bg-secondary);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .debug-lock input:focus,
+        .debug-custom-target input:focus {
+            border-color: var(--color-present);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-present) 22%, transparent);
+        }
+
+        .debug-error {
+            min-height: 18px;
+            color: var(--color-present);
+            font-size: 0.85rem;
+            text-align: center;
+        }
+
+        .debug-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            padding: 0;
+            background-color: transparent;
+            border: none;
+            color: var(--color-text);
+            font-size: 0.88rem;
+            line-height: 1.4;
+        }
+
+        .debug-row {
+            min-height: 58px;
+            padding: 10px 12px;
+            background: linear-gradient(135deg, var(--color-bg-secondary), var(--color-bg));
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            word-break: break-word;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .debug-row.wide {
+            grid-column: 1 / -1;
+        }
+
+        .debug-row span {
+            color: var(--color-text-secondary);
+            font-size: 0.76rem;
+        }
+
+        .debug-row strong {
+            color: var(--color-present);
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .debug-row.muted strong {
+            color: var(--color-text-secondary);
+            font-weight: 500;
+        }
+
+        .debug-actions,
+        .debug-custom-target {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .debug-actions .modal-btn {
+            width: 100%;
+            margin-top: 0;
+        }
+
+        .debug-footer-flash {
+            border-radius: 999px;
+            animation: debugFooterFlash 3s ease-out;
+        }
+
+        @keyframes debugFooterFlash {
+            0%, 100% {
+                filter: none;
+                box-shadow: none;
+            }
+            15%, 75% {
+                filter: brightness(1.35) saturate(1.4);
+                box-shadow: 0 0 18px color-mix(in srgb, var(--color-present) 70%, transparent);
+            }
+        }
 
         /* 认输按钮 */
         .give-up-btn {

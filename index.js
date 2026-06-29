@@ -6,6 +6,11 @@
         let targetNestingLevels = [];
         let currentFont = null;
         let guessHistory = []; // 存储最近15次猜测
+        let hintTextShown = false;
+        let hintTextType = '';
+        let hintMeaningValue = '';
+        let revealedHintIndices = [];
+        let hintCount = 0;
         let autoGuessTimer = null;
         let isShowingResult = false; // 是否在显示结果（继续状态）
         let countdownTimer = null; // 倒计时计时器
@@ -15,11 +20,1016 @@
         // 常用汉字列表
         const commonChars = '的一了在人他这个们为国地到以时要就会可你对能得着过后作道行然家方多经么去法学如同现没动起分还进好小部些主理心她前但因只从想实日军意力它把机公使情明性全三点外将高间问很战向头体相见被利什二等产或新制加斯月话合回特代信给位次度门任常海通教儿提立员解真论义几口认条平气题活尔别打变神总何数安少结受量感务做接场件计管期德资命金指许统区保至队形社便空决治展马科司基眼非则听却达光放强即权思完设式路记南品住告类据程北边张该交规拉格望觉领共确传师观清今切院让识京口水沝淼㵘火炎焱燚炏池沙彩财富逗雨姐笑是处呢收资金您悠远圆园难鸡鸣';
 
+        const charHints = {
+                    "的": {
+                                "pinyin": "de/di2/di4",
+                                "meaning": "(possessive particle)/of, really and truly, aim/clear"
+                    },
+                    "一": {
+                                "pinyin": "yi1",
+                                "meaning": "one/1/single/a(n)"
+                    },
+                    "了": {
+                                "pinyin": "le/liao3/liao4",
+                                "meaning": "(modal particle intensifying preceding clause)/(completed action marker), to know/to understand/to know, clear, look afar from a high place"
+                    },
+                    "在": {
+                                "pinyin": "zai4",
+                                "meaning": "(located) at/in/exist"
+                    },
+                    "人": {
+                                "pinyin": "ren2",
+                                "meaning": "man/person/people"
+                    },
+                    "他": {
+                                "pinyin": "ta1",
+                                "meaning": "he/him"
+                    },
+                    "这": {
+                                "pinyin": "zhe4/zhei4",
+                                "meaning": "this/these, this/these/(sometimes used before a measure word, especially in Beijing)"
+                    },
+                    "个": {
+                                "pinyin": "ge4",
+                                "meaning": "(a measure word)/individual"
+                    },
+                    "们": {
+                                "pinyin": "men",
+                                "meaning": "(plural marker for pronouns and a few animate nouns)"
+                    },
+                    "为": {
+                                "pinyin": "wei2/wei4",
+                                "meaning": "act as/take...to be/to be/to do/to serve as/to become, because of/for/to"
+                    },
+                    "国": {
+                                "pinyin": "guo2",
+                                "meaning": "country/state/nation"
+                    },
+                    "地": {
+                                "pinyin": "de/di4",
+                                "meaning": "(subor. part. adverbial)/-ly, earth/ground/field/place/land"
+                    },
+                    "到": {
+                                "pinyin": "dao4",
+                                "meaning": "to (a place)/until (a time)/up to/to go/to arrive"
+                    },
+                    "以": {
+                                "pinyin": "yi3",
+                                "meaning": "to use/according to/so as to/in order to/by/with/because/Israel (abbrev.)"
+                    },
+                    "时": {
+                                "pinyin": "shi2",
+                                "meaning": "o'clock/time/when/hour/season/period"
+                    },
+                    "要": {
+                                "pinyin": "yao1/yao4",
+                                "meaning": "demand/ask/request/coerce, important/vital/to want/to be going to/must"
+                    },
+                    "就": {
+                                "pinyin": "jiu4",
+                                "meaning": "at once/then/right away/only/(emphasis)/to approach/to move towards/to undertake"
+                    },
+                    "会": {
+                                "pinyin": "hui4/kuai4",
+                                "meaning": "can/be possible/be able to/to assemble/to meet/to gather/to see/union/group/association, to balance an account/accounting"
+                    },
+                    "可": {
+                                "pinyin": "ke3",
+                                "meaning": "can/may/able to/certain(ly)/to suit/(particle used for emphasis)"
+                    },
+                    "你": {
+                                "pinyin": "ni3",
+                                "meaning": "you"
+                    },
+                    "对": {
+                                "pinyin": "dui4",
+                                "meaning": "couple/pair/to be opposite/to oppose/to face/for/to/correct (answer)/to answer/to reply/to direct (towards sth)/right"
+                    },
+                    "能": {
+                                "pinyin": "neng2",
+                                "meaning": "can/may/capable/energy/able"
+                    },
+                    "得": {
+                                "pinyin": "de2/de/dei3",
+                                "meaning": "obtain/get/gain/proper/suitable/proud/contented/allow/permit/ready/finished, a sentence particle used after a verb to show effect/degree or possibility, to have to/must/ought to/to need to"
+                    },
+                    "着": {
+                                "pinyin": "zhao1/zhao2/zhe/zhu4/zhuo2",
+                                "meaning": "catch/receive/suffer, part. indicates the successful result of a verb/to touch/to come in contact with/to feel/to be affected by/to catch fire/to fall asleep/to burn, -ing part. (indicates an action in progress)/part. coverb-forming after some verbs, to make known/to show/to prove/to write/book/outstanding, to wear (clothes)/to contact/to use/to apply"
+                    },
+                    "过": {
+                                "pinyin": "guo4",
+                                "meaning": "(experienced action marker)/to cross/to go over/to pass (time)/to celebrate (a holiday)/to live/to get along/(surname)/excessively/too-"
+                    },
+                    "后": {
+                                "pinyin": "hou4",
+                                "meaning": "empress/queen/surname, back/behind/rear/afterwards/after/later"
+                    },
+                    "作": {
+                                "pinyin": "zuo4",
+                                "meaning": "to regard as/to take (somebody) for/to do/to make"
+                    },
+                    "道": {
+                                "pinyin": "dao4",
+                                "meaning": "direction/way/method/road/path/principle/truth/reason/skill/method/Tao (of Taoism)/a measure word/to say/to speak/to talk"
+                    },
+                    "行": {
+                                "pinyin": "hang2/xing2/xing4",
+                                "meaning": "a row/profession/professional, all right/capable/competent/OK/okay/to go/to do/to travel/temporary/to walk/to go/will do, behavior/conduct"
+                    },
+                    "然": {
+                                "pinyin": "ran2",
+                                "meaning": "correct/right/so/thus/like this/-ly"
+                    },
+                    "家": {
+                                "pinyin": "jia1",
+                                "meaning": "furniture/tool, -ist/-er/-ian/home/family/a person engaged in a certain art or profession"
+                    },
+                    "方": {
+                                "pinyin": "fang1",
+                                "meaning": "square/quadrilateral/direction/just"
+                    },
+                    "多": {
+                                "pinyin": "duo1",
+                                "meaning": "many/much/a lot of/numerous/multi-"
+                    },
+                    "经": {
+                                "pinyin": "jing1",
+                                "meaning": "classics/sacred book/pass through/to undergo/scripture"
+                    },
+                    "么": {
+                                "pinyin": "ma/me/yao1",
+                                "meaning": "(interrog. part.), (interrog. suff.), one on dice/small"
+                    },
+                    "去": {
+                                "pinyin": "qu4",
+                                "meaning": "to go/to leave/to remove"
+                    },
+                    "法": {
+                                "pinyin": "fa3",
+                                "meaning": "law/method/way/Buddhist teaching/Legalist/France (abbrev.)"
+                    },
+                    "学": {
+                                "pinyin": "xue2",
+                                "meaning": "learn/study/science/-ology"
+                    },
+                    "如": {
+                                "pinyin": "ru2",
+                                "meaning": "as (if)/such as"
+                    },
+                    "同": {
+                                "pinyin": "tong2",
+                                "meaning": "like/same/similar/together/alike/with"
+                    },
+                    "现": {
+                                "pinyin": "xian4",
+                                "meaning": "appear/present/now/existing/current"
+                    },
+                    "没": {
+                                "pinyin": "mei2/mo4",
+                                "meaning": "(negative prefix for verbs)/have not/not, drowned/to end/to die/to inundate"
+                    },
+                    "动": {
+                                "pinyin": "dong4",
+                                "meaning": "to use/to act/to move/to change"
+                    },
+                    "起": {
+                                "pinyin": "qi3",
+                                "meaning": "to rise/to raise/to get up"
+                    },
+                    "分": {
+                                "pinyin": "fen1/fen4",
+                                "meaning": "to divide/minute/(a measure word)/(a unit of length = 0.33 centimeter), part"
+                    },
+                    "还": {
+                                "pinyin": "hai2/huan2/huan4",
+                                "meaning": "also/in addition/more/still/else/still/yet/(not) yet, (surname)/pay back/return"
+                    },
+                    "进": {
+                                "pinyin": "jin4",
+                                "meaning": "advance/enter/to come in"
+                    },
+                    "好": {
+                                "pinyin": "hao3/hao4",
+                                "meaning": "good/well, be fond of"
+                    },
+                    "小": {
+                                "pinyin": "xiao3",
+                                "meaning": "small/tiny/few/young"
+                    },
+                    "部": {
+                                "pinyin": "bu4",
+                                "meaning": "ministry/department/section/part/division/troops/board/(a measure word)/(a measure word for works of literature, films, machines, etc.)"
+                    },
+                    "些": {
+                                "pinyin": "xie1",
+                                "meaning": "some/few/several/(a measure word)"
+                    },
+                    "主": {
+                                "pinyin": "zhu3",
+                                "meaning": "to own/to host/master/lord/primary"
+                    },
+                    "理": {
+                                "pinyin": "li3",
+                                "meaning": "reason/logic/science/inner principle or structure"
+                    },
+                    "心": {
+                                "pinyin": "xin1",
+                                "meaning": "heart/mind"
+                    },
+                    "她": {
+                                "pinyin": "ta1",
+                                "meaning": "she"
+                    },
+                    "前": {
+                                "pinyin": "qian2",
+                                "meaning": "before/in front/ago/former/previous/earlier/front"
+                    },
+                    "但": {
+                                "pinyin": "dan4",
+                                "meaning": "but/yet/however/only/merely/still"
+                    },
+                    "因": {
+                                "pinyin": "yin1",
+                                "meaning": "cause/reason/because"
+                    },
+                    "只": {
+                                "pinyin": "qi2/zhi1/zhi3",
+                                "meaning": "earth-spirit/peace, (a measure word, for birds and some animals, etc.)/single/only, M for one of a pair, only/merely/just/but, but/only"
+                    },
+                    "从": {
+                                "pinyin": "cong1/cong2/zong4",
+                                "meaning": "lax/yielding/unhurried, from/obey/observe/follow, second cousin"
+                    },
+                    "想": {
+                                "pinyin": "xiang3",
+                                "meaning": "to think/to believe/to suppose/to wish/to want/to miss"
+                    },
+                    "实": {
+                                "pinyin": "shi2",
+                                "meaning": "real/true/honest/really/solid"
+                    },
+                    "日": {
+                                "pinyin": "ri4",
+                                "meaning": "Japan/day/sun/date/day of the month"
+                    },
+                    "军": {
+                                "pinyin": "jun1",
+                                "meaning": "army/military/arms"
+                    },
+                    "意": {
+                                "pinyin": "yi4",
+                                "meaning": "idea/meaning/wish/desire/(abbr.) Italy"
+                    },
+                    "力": {
+                                "pinyin": "li4",
+                                "meaning": "power/force/strength"
+                    },
+                    "它": {
+                                "pinyin": "ta1",
+                                "meaning": "it"
+                    },
+                    "把": {
+                                "pinyin": "ba3/ba4",
+                                "meaning": "(a measure word)/(marker for direct-object)/to hold/to contain/to grasp/to take hold of, handle"
+                    },
+                    "机": {
+                                "pinyin": "ji1",
+                                "meaning": "machine/opportunity/secret"
+                    },
+                    "公": {
+                                "pinyin": "gong1",
+                                "meaning": "just/honorable (designation)/public/common"
+                    },
+                    "使": {
+                                "pinyin": "shi3",
+                                "meaning": "to make/to cause/to enable/to use/to employ/messenger"
+                    },
+                    "情": {
+                                "pinyin": "qing2",
+                                "meaning": "feeling/emotion/passion/situation"
+                    },
+                    "明": {
+                                "pinyin": "ming2",
+                                "meaning": "clear/bright/to understand/next/the Ming dynasty"
+                    },
+                    "性": {
+                                "pinyin": "xing4",
+                                "meaning": "sex/nature/surname/suffix corresponding to -ness or -ity"
+                    },
+                    "全": {
+                                "pinyin": "quan2",
+                                "meaning": "all/whole/entire/every/complete"
+                    },
+                    "三": {
+                                "pinyin": "san1",
+                                "meaning": "three/3"
+                    },
+                    "点": {
+                                "pinyin": "dian3",
+                                "meaning": "(downwards-right convex character stroke)/o'clock/(a measure word)/point/dot/(decimal) point)"
+                    },
+                    "外": {
+                                "pinyin": "wai4",
+                                "meaning": "outside/in addition/foreign/external"
+                    },
+                    "将": {
+                                "pinyin": "jiang1/jiang4",
+                                "meaning": "(will, shall, \"future tense\")/ready/prepared/to get/to use, a general"
+                    },
+                    "高": {
+                                "pinyin": "gao1",
+                                "meaning": "high/tall"
+                    },
+                    "间": {
+                                "pinyin": "jian1/jian4",
+                                "meaning": "between/among/space/(measure word), interstice/separate"
+                    },
+                    "问": {
+                                "pinyin": "wen4",
+                                "meaning": "to ask"
+                    },
+                    "很": {
+                                "pinyin": "hen3",
+                                "meaning": "very/extremely"
+                    },
+                    "战": {
+                                "pinyin": "zhan4",
+                                "meaning": "to fight/fight/war/battle"
+                    },
+                    "向": {
+                                "pinyin": "xiang4",
+                                "meaning": "direction/part/side/towards/to/guide/opposite to, guide/opposite to"
+                    },
+                    "头": {
+                                "pinyin": "tou2/tou",
+                                "meaning": "head, suff. for nouns"
+                    },
+                    "体": {
+                                "pinyin": "ti3",
+                                "meaning": "body/form/style/system"
+                    },
+                    "相": {
+                                "pinyin": "xiang1/xiang4",
+                                "meaning": "each other/one another/mutually, appearance/portrait/picture"
+                    },
+                    "见": {
+                                "pinyin": "jian4/xian4",
+                                "meaning": "to see/to meet/to appear (to be sth)/to interview, appear"
+                    },
+                    "被": {
+                                "pinyin": "bei4",
+                                "meaning": "by (marker for passive-voice sentences or clauses)/quilt/blanket/to cover/to wear"
+                    },
+                    "利": {
+                                "pinyin": "li4",
+                                "meaning": "advantage/benefit/profit/sharp"
+                    },
+                    "什": {
+                                "pinyin": "shen2/shi2",
+                                "meaning": "what, tenth (used in fractions)"
+                    },
+                    "二": {
+                                "pinyin": "er4",
+                                "meaning": "two/2"
+                    },
+                    "等": {
+                                "pinyin": "deng3",
+                                "meaning": "class/rank/grade/equal to/same as/wait for/await/et cetera/and so on"
+                    },
+                    "产": {
+                                "pinyin": "chan3",
+                                "meaning": "to reproduce/to produce/give birth/products/produce/resources/estate/property"
+                    },
+                    "或": {
+                                "pinyin": "huo4",
+                                "meaning": "maybe/perhaps/might/possibly/or"
+                    },
+                    "新": {
+                                "pinyin": "xin1",
+                                "meaning": "meso- (chem.)/new/newly"
+                    },
+                    "制": {
+                                "pinyin": "zhi4",
+                                "meaning": "system/to make/to manufacture/to control/to regulate, manufacture"
+                    },
+                    "加": {
+                                "pinyin": "jia1",
+                                "meaning": "to add/plus"
+                    },
+                    "斯": {
+                                "pinyin": "si1",
+                                "meaning": "(phonetic)/this"
+                    },
+                    "月": {
+                                "pinyin": "yue4",
+                                "meaning": "moon/month"
+                    },
+                    "话": {
+                                "pinyin": "hua4",
+                                "meaning": "dialect/language/spoken words/speech/talk/words/conversation/what someone said"
+                    },
+                    "合": {
+                                "pinyin": "ge3/he2",
+                                "meaning": "one-tenth of a peck, Chinese musical note/fit/to join"
+                    },
+                    "回": {
+                                "pinyin": "hui2",
+                                "meaning": "(a measure word for matters or actions) a time/to circle/to go back/to turn around/to answer/to return/to revolve/Islam"
+                    },
+                    "特": {
+                                "pinyin": "te2/te4",
+                                "meaning": "special/unusual/extraordinary, male animal/special (-ly)"
+                    },
+                    "代": {
+                                "pinyin": "dai4",
+                                "meaning": "substitute/replace/generation/dynasty/geological era/era/age/period"
+                    },
+                    "信": {
+                                "pinyin": "xin4",
+                                "meaning": "letter/true/to believe/sign/evidence"
+                    },
+                    "给": {
+                                "pinyin": "gei3/ji3",
+                                "meaning": "to/for/for the benefit of/to give/to allow/to do sth (for sb)/(passive particle), to supply/provide"
+                    },
+                    "位": {
+                                "pinyin": "wei4",
+                                "meaning": "position/location/(measure word for persons)/place/seat"
+                    },
+                    "次": {
+                                "pinyin": "ci4",
+                                "meaning": "nth/number (of times)/order/sequence/next/second(ary)/(measure word)"
+                    },
+                    "度": {
+                                "pinyin": "du4",
+                                "meaning": "capacity/degree/standard"
+                    },
+                    "门": {
+                                "pinyin": "men2",
+                                "meaning": "opening/door/gate/doorway/gateway/valve/switch/way to do something/knack/family/house/(religious) sect/school (of thought)/class/category/phylum or division (taxonomy)"
+                    },
+                    "任": {
+                                "pinyin": "ren4",
+                                "meaning": "to assign/to appoint/office/responsibility"
+                    },
+                    "常": {
+                                "pinyin": "chang2",
+                                "meaning": "always/ever/often/frequently/common/general/constant"
+                    },
+                    "海": {
+                                "pinyin": "hai3",
+                                "meaning": "ocean/sea"
+                    },
+                    "通": {
+                                "pinyin": "tong1",
+                                "meaning": "go through/know well/to connect/to communicate/open"
+                    },
+                    "教": {
+                                "pinyin": "jiao1/jiao4",
+                                "meaning": "teach, religion/teaching"
+                    },
+                    "儿": {
+                                "pinyin": "er2/er",
+                                "meaning": "son, non-syllabic dimi. suff."
+                    },
+                    "提": {
+                                "pinyin": "di1/ti2",
+                                "meaning": "carry (suspended), to carry/to lift/to put forward/(upwards character stroke)/lifting (brush stroke in painting)/to mention"
+                    },
+                    "立": {
+                                "pinyin": "li4",
+                                "meaning": "set up/to stand"
+                    },
+                    "员": {
+                                "pinyin": "yuan2",
+                                "meaning": "person/employee/member"
+                    },
+                    "解": {
+                                "pinyin": "jie3/jie4/xie4",
+                                "meaning": "to separate/to divide/to break up/to loosen/to explain/to untie/to emancipate, transport under guard, (surname)"
+                    },
+                    "真": {
+                                "pinyin": "zhen1",
+                                "meaning": "real/true/genuine"
+                    },
+                    "论": {
+                                "pinyin": "lun2/lun4",
+                                "meaning": "the Analects (of Confucius), by the/per/discuss/theory/to talk (about)/to discuss"
+                    },
+                    "义": {
+                                "pinyin": "yi4",
+                                "meaning": "justice/righteousness/meaning"
+                    },
+                    "几": {
+                                "pinyin": "ji1/ji3",
+                                "meaning": "small table, almost, a few/how many, how much/how many/several/a few"
+                    },
+                    "口": {
+                                "pinyin": "kou3",
+                                "meaning": "mouth/(a measure word)"
+                    },
+                    "认": {
+                                "pinyin": "ren4",
+                                "meaning": "to recognize/to know/to admit"
+                    },
+                    "条": {
+                                "pinyin": "tiao2",
+                                "meaning": "measure word for long, thin things (i.e. ribbon, river, etc.)/a strip/item/article"
+                    },
+                    "平": {
+                                "pinyin": "ping2",
+                                "meaning": "flat/level/equal/to make the same score/to tie/to draw/calm/peaceful"
+                    },
+                    "气": {
+                                "pinyin": "qi4",
+                                "meaning": "air/anger/gas, gas/air/smell/weather/vital breath/to make sb. angry/to get angry/to be enraged"
+                    },
+                    "题": {
+                                "pinyin": "ti2",
+                                "meaning": "topic/subject/to inscribe/to superscribe"
+                    },
+                    "活": {
+                                "pinyin": "huo2",
+                                "meaning": "to live/alive/living/work/workmanship"
+                    },
+                    "尔": {
+                                "pinyin": "er3",
+                                "meaning": "thus/so/like that/you/thou"
+                    },
+                    "别": {
+                                "pinyin": "bie2/bie4",
+                                "meaning": "leave/depart/separate/distinguish/classify/other/another/do not/must not/to pin, contrary/difficult/awkward"
+                    },
+                    "打": {
+                                "pinyin": "da2/da3",
+                                "meaning": "dozen, beat/strike/break/mix up/build/fight/fetch/make/tie up/issue/shoot/calculate/since/from"
+                    },
+                    "变": {
+                                "pinyin": "bian4",
+                                "meaning": "to change/to become different/to transform/to vary/rebellion"
+                    },
+                    "神": {
+                                "pinyin": "shen2",
+                                "meaning": "God/unusual/mysterious/soul/spirit/divine essence/lively/spiritual being"
+                    },
+                    "总": {
+                                "pinyin": "zong3",
+                                "meaning": "always/to assemble/gather/total/overall/head/chief/general/in every case"
+                    },
+                    "何": {
+                                "pinyin": "he2",
+                                "meaning": "carry/what/how/why/which"
+                    },
+                    "数": {
+                                "pinyin": "shu3/shu4/shuo4",
+                                "meaning": "to count, number/figure/to count/to calculate/several, frequently/repeatedly"
+                    },
+                    "安": {
+                                "pinyin": "an1",
+                                "meaning": "content/calm/still/quiet/to pacify/peace"
+                    },
+                    "少": {
+                                "pinyin": "shao3/shao4",
+                                "meaning": "few/little/lack, young"
+                    },
+                    "结": {
+                                "pinyin": "jie1/jie2",
+                                "meaning": "knot/sturdy/to bear (fruit)/bond/to tie/to bind"
+                    },
+                    "受": {
+                                "pinyin": "shou4",
+                                "meaning": "to bear/to stand/to endure/(passive marker)/to receive"
+                    },
+                    "量": {
+                                "pinyin": "liang2/liang4",
+                                "meaning": "to measure, capacity/quantity/amount/to estimate"
+                    },
+                    "感": {
+                                "pinyin": "gan3",
+                                "meaning": "to feel/to move/to touch/to affect"
+                    },
+                    "务": {
+                                "pinyin": "wu4",
+                                "meaning": "affair/business/matter"
+                    },
+                    "做": {
+                                "pinyin": "zuo4",
+                                "meaning": "to do/to make/to produce"
+                    },
+                    "接": {
+                                "pinyin": "jie1",
+                                "meaning": "to extend/to connect/to receive/to join"
+                    },
+                    "场": {
+                                "pinyin": "chang3",
+                                "meaning": "a courtyard/open space/place/field/a measure word/(a measure word, used for sport or recreation)"
+                    },
+                    "件": {
+                                "pinyin": "jian4",
+                                "meaning": "a measure word for thing, clothes, item"
+                    },
+                    "计": {
+                                "pinyin": "ji4",
+                                "meaning": "to calculate/to compute/to count/reckon/ruse/to plan"
+                    },
+                    "管": {
+                                "pinyin": "guan3",
+                                "meaning": "to take care (of)/to control/to manage/to be in charge of/to look after/to run/tube/pipe"
+                    },
+                    "期": {
+                                "pinyin": "qi1",
+                                "meaning": "a period of time/phase/stage/(used for issue of a periodical, courses of study)/time/term/period/to hope"
+                    },
+                    "德": {
+                                "pinyin": "de2",
+                                "meaning": "Germany/virtue/goodness/morality/ethics/kindness/favor/character/kind"
+                    },
+                    "资": {
+                                "pinyin": "zi1",
+                                "meaning": "resources/capital/to provide/to supply/to support/money/expense"
+                    },
+                    "命": {
+                                "pinyin": "ming4",
+                                "meaning": "life/fate"
+                    },
+                    "金": {
+                                "pinyin": "jin1",
+                                "meaning": "metal/money/gold"
+                    },
+                    "指": {
+                                "pinyin": "zhi3",
+                                "meaning": "finger/to point/to direct/to indicate"
+                    },
+                    "许": {
+                                "pinyin": "xu3",
+                                "meaning": "to allow/to permit/to praise/(surname)"
+                    },
+                    "统": {
+                                "pinyin": "tong3",
+                                "meaning": "to gather/to unite/to unify/whole"
+                    },
+                    "区": {
+                                "pinyin": "ou1/qu1",
+                                "meaning": "Ou (surname), area/region/district/small/distinguish"
+                    },
+                    "保": {
+                                "pinyin": "bao3",
+                                "meaning": "to defend/to protect/to insure or guarantee/to maintain/hold or keep/to guard"
+                    },
+                    "至": {
+                                "pinyin": "zhi4",
+                                "meaning": "arrive/most/to/until"
+                    },
+                    "队": {
+                                "pinyin": "dui4",
+                                "meaning": "squadron/team/group"
+                    },
+                    "形": {
+                                "pinyin": "xing2",
+                                "meaning": "to appear/to look/form/shape"
+                    },
+                    "社": {
+                                "pinyin": "she4",
+                                "meaning": "society/group"
+                    },
+                    "便": {
+                                "pinyin": "bian4/pian2",
+                                "meaning": "ordinary/plain/convenient/handy/easy/then/so/thus/to relieve oneself, advantageous/cheap"
+                    },
+                    "空": {
+                                "pinyin": "kong1/kong4",
+                                "meaning": "air/sky/empty/in vain, emptied/leisure"
+                    },
+                    "决": {
+                                "pinyin": "jue2",
+                                "meaning": "breach (a dyke)/to decide/to determine"
+                    },
+                    "治": {
+                                "pinyin": "zhi4",
+                                "meaning": "to rule/to govern/to manage/to control/to harness (a river)/cure/treatment/to heal"
+                    },
+                    "展": {
+                                "pinyin": "zhan3",
+                                "meaning": "to use/to spread out/to postpone/to unfold"
+                    },
+                    "马": {
+                                "pinyin": "ma3",
+                                "meaning": "horse/horse chess piece/Surname"
+                    },
+                    "科": {
+                                "pinyin": "ke1",
+                                "meaning": "branch of study/administrative section/division/field/branch/stage directions/family (taxonomy)/rules/laws/to mete out (punishment)/to levy (taxes, etc.)/to fine somebody"
+                    },
+                    "司": {
+                                "pinyin": "si1",
+                                "meaning": "company/control"
+                    },
+                    "基": {
+                                "pinyin": "ji1",
+                                "meaning": "base/foundation/basic/radical (chem.)"
+                    },
+                    "眼": {
+                                "pinyin": "yan3",
+                                "meaning": "eye"
+                    },
+                    "非": {
+                                "pinyin": "fei1",
+                                "meaning": "non-/not-/un-"
+                    },
+                    "则": {
+                                "pinyin": "ze2",
+                                "meaning": "(expresses contrast with a previous sentence or clause)/standard/norm/rule/to imitate/to follow/then/principle"
+                    },
+                    "听": {
+                                "pinyin": "ting1/ting4",
+                                "meaning": "listen/hear/obey, let/allow"
+                    },
+                    "却": {
+                                "pinyin": "que4",
+                                "meaning": "but/yet/however/while/to go back/to decline/to retreat/nevertheless"
+                    },
+                    "达": {
+                                "pinyin": "da2",
+                                "meaning": "attain/pass through/achieve/reach/realize/clear/inform/notify/dignity"
+                    },
+                    "光": {
+                                "pinyin": "guang1",
+                                "meaning": "light/ray/bright"
+                    },
+                    "放": {
+                                "pinyin": "fang4",
+                                "meaning": "to release/to free/to let go/to put/to place/to let out"
+                    },
+                    "强": {
+                                "pinyin": "qiang2",
+                                "meaning": "strength/force/power/powerful/better"
+                    },
+                    "即": {
+                                "pinyin": "ji2",
+                                "meaning": "namely/right away/to approach/to draw near"
+                    },
+                    "权": {
+                                "pinyin": "quan2",
+                                "meaning": "authority/power/right"
+                    },
+                    "思": {
+                                "pinyin": "si1",
+                                "meaning": "to think/to consider"
+                    },
+                    "完": {
+                                "pinyin": "wan2",
+                                "meaning": "to finish/to be over/whole/complete/entire"
+                    },
+                    "设": {
+                                "pinyin": "she4",
+                                "meaning": "to set up/to arrange/to establish/to found/to display"
+                    },
+                    "式": {
+                                "pinyin": "shi4",
+                                "meaning": "type/form/pattern/style"
+                    },
+                    "路": {
+                                "pinyin": "lu4",
+                                "meaning": "(surname)/road/path/way"
+                    },
+                    "记": {
+                                "pinyin": "ji4",
+                                "meaning": "to remember/to note/mark/sign/to record"
+                    },
+                    "南": {
+                                "pinyin": "nan2",
+                                "meaning": "south"
+                    },
+                    "品": {
+                                "pinyin": "pin3",
+                                "meaning": "conduct/grade/thing/product/good"
+                    },
+                    "住": {
+                                "pinyin": "zhu4",
+                                "meaning": "to live/to dwell/to reside/to stop"
+                    },
+                    "告": {
+                                "pinyin": "gao4",
+                                "meaning": "to tell/to inform/to say"
+                    },
+                    "类": {
+                                "pinyin": "lei4",
+                                "meaning": "kind/type/class/category/similar/like/to resemble"
+                    },
+                    "据": {
+                                "pinyin": "ju1/ju4",
+                                "meaning": "sickness of hand, act in accordance with/seize, according to/to act in accordance with/to depend on/to seize/to occupy"
+                    },
+                    "程": {
+                                "pinyin": "cheng2",
+                                "meaning": "rule/order/regulations/formula/journey/procedure/sequence/a surname"
+                    },
+                    "北": {
+                                "pinyin": "bei3",
+                                "meaning": "north"
+                    },
+                    "边": {
+                                "pinyin": "bian1",
+                                "meaning": "side/edge/margin/border/boundary"
+                    },
+                    "张": {
+                                "pinyin": "zhang1",
+                                "meaning": "(a measure word)/(a surname)/open up"
+                    },
+                    "该": {
+                                "pinyin": "gai1",
+                                "meaning": "that/the above-mentioned/most likely/to deserve/should/ought to/owe"
+                    },
+                    "交": {
+                                "pinyin": "jiao1",
+                                "meaning": "to deliver/to turn over/to make friends/to intersect (lines)/to pay (money)"
+                    },
+                    "规": {
+                                "pinyin": "gui1",
+                                "meaning": "compass/rule"
+                    },
+                    "拉": {
+                                "pinyin": "la1",
+                                "meaning": "to pull/to play (string instruments)/to drag/to draw"
+                    },
+                    "格": {
+                                "pinyin": "ge2",
+                                "meaning": "frame/rule"
+                    },
+                    "望": {
+                                "pinyin": "wang4",
+                                "meaning": "hope/expect/to visit/to gaze (into the distance)/look towards/towards"
+                    },
+                    "觉": {
+                                "pinyin": "jiao4/jue2",
+                                "meaning": "a nap/a sleep, feel/find that/thinking/awake/aware"
+                    },
+                    "领": {
+                                "pinyin": "ling3",
+                                "meaning": "neck/collar/to lead/to receive"
+                    },
+                    "共": {
+                                "pinyin": "gong4",
+                                "meaning": "all together/in while/to share/common/general/together"
+                    },
+                    "确": {
+                                "pinyin": "que4",
+                                "meaning": "authenticated/solid/firm, authenticated/solid/firm/real/true"
+                    },
+                    "传": {
+                                "pinyin": "chuan2/zhuan4",
+                                "meaning": "to pass on/to spread/to transmit/to infect/to transfer/to circulate/to pass on/to conduct (electricity), biography"
+                    },
+                    "师": {
+                                "pinyin": "shi1",
+                                "meaning": "a division (milit.)/teacher/master/expert/model"
+                    },
+                    "观": {
+                                "pinyin": "guan1/guan4",
+                                "meaning": "to look at/to watch/to observe/to behold, Taoist monastery"
+                    },
+                    "清": {
+                                "pinyin": "qing1",
+                                "meaning": "clear/distinct/complete/pure"
+                    },
+                    "今": {
+                                "pinyin": "jin1",
+                                "meaning": "today/modern/present/current/this/now"
+                    },
+                    "切": {
+                                "pinyin": "qie1/qie4",
+                                "meaning": "to cut/to slice, close to"
+                    },
+                    "院": {
+                                "pinyin": "yuan4",
+                                "meaning": "courtyard/institution"
+                    },
+                    "让": {
+                                "pinyin": "rang4",
+                                "meaning": "to ask/to let/permit/have (someone do something)/to yield/to allow"
+                    },
+                    "识": {
+                                "pinyin": "shi2/zhi4",
+                                "meaning": "to know/knowledge, to record/write a footnote"
+                    },
+                    "京": {
+                                "pinyin": "jing1",
+                                "meaning": "capital/Beijing (abbrev.)"
+                    },
+                    "水": {
+                                "pinyin": "shui3",
+                                "meaning": "water/river"
+                    },
+                    "淼": {
+                                "pinyin": "miao3",
+                                "meaning": "a flood/infinity"
+                    },
+                    "火": {
+                                "pinyin": "huo3",
+                                "meaning": "fire"
+                    },
+                    "炎": {
+                                "pinyin": "yan2",
+                                "meaning": "flame/inflammation/-itis"
+                    },
+                    "焱": {
+                                "pinyin": "yan4",
+                                "meaning": "flames"
+                    },
+                    "池": {
+                                "pinyin": "chi2",
+                                "meaning": "pond/reservoir"
+                    },
+                    "沙": {
+                                "pinyin": "sha1",
+                                "meaning": "granule/hoarse/raspy/sand/powder"
+                    },
+                    "彩": {
+                                "pinyin": "cai3",
+                                "meaning": "(bright) color/variety/applause/applaud/(lottery) prize, colored/variegated"
+                    },
+                    "财": {
+                                "pinyin": "cai2",
+                                "meaning": "money/wealth/riches/property/valuables"
+                    },
+                    "富": {
+                                "pinyin": "fu4",
+                                "meaning": "rich"
+                    },
+                    "逗": {
+                                "pinyin": "dou4",
+                                "meaning": "linger"
+                    },
+                    "雨": {
+                                "pinyin": "yu3",
+                                "meaning": "rain"
+                    },
+                    "姐": {
+                                "pinyin": "jie3",
+                                "meaning": "older sister"
+                    },
+                    "笑": {
+                                "pinyin": "xiao4",
+                                "meaning": "laugh/smile"
+                    },
+                    "是": {
+                                "pinyin": "shi4",
+                                "meaning": "is/are/am/yes/to be"
+                    },
+                    "处": {
+                                "pinyin": "chu3/chu4",
+                                "meaning": "to reside/to live/to dwell/to be in/to stay/get along with/to be in a position of/deal with, a place/location/spot/point/office/department/bureau/respect"
+                    },
+                    "呢": {
+                                "pinyin": "ne/ni2",
+                                "meaning": "(question particle), woolen material"
+                    },
+                    "收": {
+                                "pinyin": "shou1",
+                                "meaning": "to receive/to accept/to collect/in care of (used on address line after name)"
+                    },
+                    "您": {
+                                "pinyin": "nin2",
+                                "meaning": "you (formal)"
+                    },
+                    "悠": {
+                                "pinyin": "you1",
+                                "meaning": "at ease/long (in time)/sad"
+                    },
+                    "远": {
+                                "pinyin": "yuan3",
+                                "meaning": "far/distant/remote"
+                    },
+                    "圆": {
+                                "pinyin": "yuan2",
+                                "meaning": "circle/round/circular/spherical/(of the moon) full/unit of Chinese currency (Yuan)/tactful/to justify"
+                    },
+                    "园": {
+                                "pinyin": "yuan2",
+                                "meaning": "garden"
+                    },
+                    "难": {
+                                "pinyin": "nan2/nan4",
+                                "meaning": "difficult (to...)/problem/difficulty/difficult/not good, disaster/distress/to scold"
+                    },
+                    "鸡": {
+                                "pinyin": "ji1",
+                                "meaning": "fowl/chicken"
+                    },
+                    "鸣": {
+                                "pinyin": "ming2",
+                                "meaning": "to cry (of birds)"
+                    }
+        };
+
         // ==================== DOM 元素 ====================
         const guessInput = document.getElementById('guessInput');
         const guessBtn = document.getElementById('guessBtn');
+        const hintBtn = document.getElementById('hintBtn');
         const guessCountDisplay = document.getElementById('guessCount');
         const guessCountContainer = document.getElementById('guessCountContainer');
+        const hintDisplay = document.getElementById('hintDisplay');
         const inputSvgOverlay = document.getElementById('inputSvgOverlay');
         const historyGrid = document.getElementById('historyGrid');
         const detailPanel = document.getElementById('detailPanel');
@@ -31,6 +1041,7 @@
         const winModal = document.getElementById('winModal');
         const modalTarget = document.getElementById('modalTarget');
         const modalGuessCount = document.getElementById('modalGuessCount');
+        const winModalMessage = document.getElementById('winModalMessage');
         const playAgainBtn = document.getElementById('playAgainBtn');
         const modalCloseBtn = document.getElementById('modalCloseBtn');
         const themeBtn = document.getElementById('themeBtn');
@@ -38,10 +1049,32 @@
         const helpBtn = document.getElementById('helpBtn');
         const helpModal = document.getElementById('helpModal');
         const helpCloseBtn = document.getElementById('helpCloseBtn');
+        const helpConfusedBtn = document.getElementById('helpConfusedBtn');
+        const tutorialModal = document.getElementById('tutorialModal');
+        const tutorialCloseBtn = document.getElementById('tutorialCloseBtn');
+        const tutorialTitle = document.getElementById('tutorialTitle');
+        const tutorialBody = document.getElementById('tutorialBody');
+        const tutorialActions = document.getElementById('tutorialActions');
+        const tutorialCoach = document.getElementById('tutorialCoach');
+        const tutorialCoachTitle = document.getElementById('tutorialCoachTitle');
+        const tutorialCoachBody = document.getElementById('tutorialCoachBody');
+        const tutorialCoachActions = document.getElementById('tutorialCoachActions');
+        const debugModal = document.getElementById('debugModal');
+        const debugCloseBtn = document.getElementById('debugCloseBtn');
+        const debugLock = document.getElementById('debugLock');
+        const debugPasswordInput = document.getElementById('debugPasswordInput');
+        const debugUnlockBtn = document.getElementById('debugUnlockBtn');
+        const debugError = document.getElementById('debugError');
+        const debugContent = document.getElementById('debugContent');
+        const debugInfo = document.getElementById('debugInfo');
+        const debugEndRoundBtn = document.getElementById('debugEndRoundBtn');
+        const debugTargetInput = document.getElementById('debugTargetInput');
+        const debugSetTargetBtn = document.getElementById('debugSetTargetBtn');
         const giveUpBtn = document.getElementById('giveUpBtn');
         const loseModal = document.getElementById('loseModal');
         const loseModalTarget = document.getElementById('loseModalTarget');
         const loseModalGuessCount = document.getElementById('loseModalGuessCount');
+        const loseModalMessage = document.getElementById('loseModalMessage');
         const losePlayAgainBtn = document.getElementById('losePlayAgainBtn');
         const loseModalCloseBtn = document.getElementById('loseModalCloseBtn');
         const iconAuto = document.getElementById('iconAuto');
@@ -83,7 +1116,21 @@
         let systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         let helpCountdownTimer = null;
         let helpCountdownValue = 10;
-        let colorBlindMode = localStorage.getItem('colorBlindMode') === 'true';
+        let colorBlindMode = localStorage.getItem('colorBlindMode') !== 'false';
+        let tutorialStep = 0;
+        let tutorialMode = '';
+        let tutorialActive = false;
+        let tutorialStage = '';
+        let tutorialSpotlightElement = null;
+        let tutorialNudgeTimer = null;
+        let lastTutorialHintPart = '';
+        let tutorialAwaitingPlayAgainExit = false;
+        const tutorialTarget = '襭';
+        let debugAuthenticated = false;
+        let debugFooterClickCount = 0;
+        let debugFooterClickTimer = null;
+        let lastHintDebugText = '';
+        const debugPasswordHash = '61a8edd0ac4ba8d3120d9eefdde04c88';
 
         // ==================== 初始化 ====================
         const loadingOverlay = document.getElementById('loadingOverlay');
@@ -102,6 +1149,21 @@
 
         window.addEventListener('languageChanged', (e) => {
             updateGuessCountDisplay(guessCount);
+            if ((hintTextType === 'pinyin' || hintTextType === 'meaning') && !hintDisplay.hidden) {
+                renderTextHint();
+            }
+            if (winModal.classList.contains('show')) {
+                renderWinMessage();
+            }
+            if (loseModal.classList.contains('show')) {
+                renderLoseMessage();
+            }
+            if (tutorialModal.classList.contains('show')) {
+                renderTutorialStart();
+            }
+            if (tutorialActive && !tutorialCoach.hidden) {
+                renderTutorialCoach();
+            }
             if (helpCountdownTimer) {
                 updateHelpCountdown();
             }
@@ -173,6 +1235,414 @@
                 localStorage.setItem('hasVisited', 'true');
                 startNewGame();
             }
+        }
+
+        function openTutorial() {
+            if (helpCountdownTimer) {
+                clearInterval(helpCountdownTimer);
+                helpCountdownTimer = null;
+            }
+            helpModal.classList.remove('show');
+            tutorialStep = 0;
+            tutorialMode = '';
+            tutorialModal.classList.add('show');
+            renderTutorialStart();
+        }
+
+        function closeTutorial() {
+            tutorialModal.classList.remove('show');
+        }
+
+        function uiText(zh, en) {
+            return ((window.getCurrentLanguage && window.getCurrentLanguage()) === 'en_us') ? en : zh;
+        }
+
+        function renderTutorialStart() {
+            tutorialTitle.textContent = uiText('🧪 交互式教学', '🧪 Interactive tutorial');
+            tutorialBody.innerHTML = `
+                <div class="tutorial-card">
+                    <p>${uiText('这次我们开一局带教练的演示局。答案先不告诉你，跟着页面上的发光提示点就行。', 'This starts a coached demo game. I will not reveal the answer yet; follow the glowing target.')}</p>
+                    <p>${uiText('系统已经把色盲模式打开了；如果你觉得自己是色彩大师，左上角 👁️ 可以关掉。', 'Color-blind mode is already on. If you are a color wizard, the eye icon in the top-left turns it off.')}</p>
+                    <p>${uiText('先选你想怎么学：打字，还是手写？', 'Choose how you want to learn: typing or handwriting?')}</p>
+                </div>
+            `;
+            tutorialActions.innerHTML = '';
+            tutorialActions.appendChild(createTutorialButton(uiText('⌨️ 学打字', '⌨️ Learn typing'), () => beginGuidedGame('typing')));
+            tutorialActions.appendChild(createTutorialButton(uiText('✏️ 学写字', '✏️ Learn handwriting'), () => beginGuidedGame('writing')));
+        }
+
+        function beginGuidedGame(mode) {
+            tutorialModal.classList.remove('show');
+            tutorialActive = true;
+            tutorialMode = mode;
+            tutorialStage = 'guessHu';
+            startNewGame(tutorialTarget);
+            renderTutorialCoach();
+        }
+
+        function renderTutorialCoach(extraMessage = '') {
+            if (!tutorialActive) return;
+            tutorialCoach.hidden = false;
+            const content = getTutorialStageContent(extraMessage);
+            tutorialCoachTitle.textContent = content.title;
+            tutorialCoachBody.innerHTML = content.body;
+            tutorialCoachActions.innerHTML = '';
+            tutorialCoachActions.appendChild(createTutorialButton(uiText('退出教学', 'Exit tutorial'), endGuidedGame, 'secondary'));
+            setTutorialSpotlight(content.element);
+        }
+
+        function getTutorialStageContent(extraMessage = '') {
+            const inputAction = tutorialMode === 'writing'
+                ? uiText('点「手写」，写这个字，点候选字填入输入框，再提交。', 'Click Draw, write this character, tap a candidate, then submit it.')
+                : uiText('在输入框输入这个字，然后点「猜」；等 3 秒自动提交也行。', 'Type this character, then click Guess. Waiting 3 seconds also auto-submits.');
+            const inputElement = tutorialMode === 'writing' ? handwriteBtn : guessInput;
+            const map = {
+                clickHistory: {
+                    title: uiText('点开刚才那一格', 'Open the tile you just made'),
+                    body: `<p>${extraMessage || uiText('猜完以后，下方历史区会出现一个小格子。点它，不要只盯着颜色发呆。', 'After guessing, a tile appears in the history area. Click it; do not just stare at the colors.')}</p><p>${uiText('这里能看到每个分块的相似度。', 'This shows the similarity score for each piece.')}</p>`,
+                    element: historyGrid.querySelector('.history-tile:not(.empty)')
+                },
+                clickPercent: {
+                    title: uiText('现在看百分比', 'Now read the percentages'),
+                    body: `<p>${extraMessage || uiText('右侧详情里，每个百分比对应一个字形分块。百分比越高，越像答案里的某一块。', 'In the detail panel, each percentage belongs to one glyph piece. Higher means closer to part of the answer.')}</p><p><strong>${uiText('请点最高的那个百分比', 'Click the highest percentage')}</strong>${uiText('，它会高亮最像答案的 SVG 分块。', '; it highlights the SVG piece that is most similar to the answer.')}</p>`,
+                    element: getBestSimilarityItem()
+                },
+                clickHint: {
+                    title: uiText('还有提示按钮', 'There is also a Hint button'),
+                    body: `<p>${extraMessage || uiText('如果你卡住了，可以点「提示」。它会随机给读音、一个英文释义，或者答案的一个字形分块。', 'If you get stuck, click Hint. It randomly gives pinyin, one English meaning, or one glyph piece from the answer.')}</p><p><strong>${uiText('请点「提示」', 'Click Hint')}</strong></p>`,
+                    element: hintBtn
+                },
+                guessLi: {
+                    title: uiText('继续猜一个相近结构', 'Guess a related structure'),
+                    body: `<p>${extraMessage || uiText('你已经知道怎么点历史和百分比了。现在换一个相近的左侧结构。', 'Now you know how history and percentages work. Try another related left-side structure.')}</p><p><strong>${uiText('请猜：「礼」', 'Guess: 礼')}</strong></p><p>${inputAction}</p>`,
+                    element: inputElement
+                },
+                guessHu: {
+                    title: uiText('教学局：先别问答案是什么', 'Tutorial game: do not ask for the answer yet'),
+                    body: `<p>${extraMessage || uiText('我们真的打一局。先从「湖」开始，看看一个复杂字会被拆成什么样。', 'We are playing a real demo round. Start with 湖 and see how a complex character gets split.')}</p><p><strong>${uiText('请猜：「湖」', 'Guess: 湖')}</strong></p><p>${inputAction}</p>`,
+                    element: inputElement
+                },
+                guessChen: {
+                    title: uiText('继续猜衣字旁方向', 'Follow the clothing-side direction'),
+                    body: `<p>${extraMessage || uiText('刚才提示过后，下一步看衣字旁相关结构。', 'After that hint, continue toward the clothing-side structure.')}</p><p><strong>${uiText('请猜：「衬」', 'Guess: 衬')}</strong></p><p>${inputAction}</p>`,
+                    element: inputElement
+                },
+                openDictionary: {
+                    title: uiText('认识一下答案字典', 'Meet the answer dictionary'),
+                    body: `<p>${extraMessage || uiText('如果你想确认游戏到底会从哪些字里抽答案，点左上角书本。', 'If you want to know which characters can appear, click the book in the top-left.')}</p><p><strong>${uiText('请点左上角 📖 字典', 'Click the 📖 dictionary in the top-left')}</strong></p>`,
+                    element: dictBtn
+                },
+                surrender: {
+                    title: uiText('最后：认输按钮在哪里', 'Finally: where Give Up lives'),
+                    body: `<p>${extraMessage || uiText('正式局卡住时，点「认输」会直接看答案。教学局就拿它收尾。', 'In a real game, Give Up reveals the answer. We will use it to end this tutorial.')}</p><p><strong>${uiText('请点「认输」', 'Click Give Up')}</strong></p>`,
+                    element: giveUpBtn
+                },
+                easterEgg: {
+                    title: uiText('演示彩蛋结束', 'Demo easter egg complete'),
+                    body: `<p>${uiText('答案是「襭」。这是演示彩蛋，实际游戏不会遇到这个字。', 'The answer was 襭. This is a demo easter egg; the real game will not use this character.')}</p><p>${uiText('正式游戏会从刚才字典里的候选字抽答案，不会突然拿冷门字砸你。', 'Real games pick answers from the dictionary you just opened; they will not ambush you with this monster.')}</p>`,
+                    element: null
+                },
+                done: {
+                    title: uiText('教学结束', 'Tutorial complete'),
+                    body: `<p>${uiText('你已经点过输入、猜、历史格、百分比、字典，也知道认输在哪。正式局开始吧。', 'You used input, Guess, history tiles, percentages, dictionary, and Give Up. Time for a real game.')}</p>`,
+                    element: null
+                }
+            };
+            return map[tutorialStage] || map.done;
+        }
+
+        function handleTutorialGuess(guess) {
+            if (!tutorialActive) return;
+            const expected = tutorialStage === 'guessHu' ? '湖'
+                : tutorialStage === 'guessChen' ? '衬'
+                : tutorialStage === 'guessLi' ? '礼'
+                : '';
+            if (!expected) return;
+            if (guess !== expected) {
+                renderTutorialCoach(uiText(
+                    `这把先别猜「${guess}」，请按剧本猜「${expected}」。我知道你很有想法，但教程不允许。`,
+                    `Do not guess ${guess} in this tutorial. Follow the script and guess ${expected}. I admire the creativity; the tutorial does not.`
+                ));
+                return;
+            }
+            if (tutorialStage === 'guessHu') {
+                tutorialStage = 'clickHistory';
+                renderTutorialCoach(uiText('很好。现在不要继续猜，先点下方刚出现的历史格。', 'Good. Do not keep guessing yet; click the history tile that just appeared.'));
+                return;
+            }
+            if (tutorialStage === 'guessChen') {
+                tutorialStage = 'guessLi';
+                renderTutorialCoach(uiText('「衬」猜完了。继续用相近的左侧结构，猜「礼」。', '衬 is done. Continue with a related left-side structure and guess 礼.'));
+                return;
+            }
+            if (tutorialStage === 'guessLi') {
+                tutorialStage = 'openDictionary';
+                renderTutorialCoach(uiText(`「${guess}」也猜完了。现在去看看答案字典长什么样。`, `${guess} is done. Now let us see what the answer dictionary looks like.`));
+                return;
+            }
+        }
+
+        function handleTutorialHistoryClick() {
+            if (!tutorialActive || tutorialStage !== 'clickHistory') return;
+            tutorialStage = 'clickPercent';
+            setTimeout(() => renderTutorialCoach(uiText('详情打开了。现在看右侧这些百分比。', 'The detail panel is open. Now look at these percentages.')), 50);
+        }
+
+        function handleTutorialSimilarityClick(item) {
+            if (!tutorialActive || tutorialStage !== 'clickPercent') return;
+            const bestItem = getBestSimilarityItem();
+            if (bestItem && item !== bestItem) {
+                renderTutorialCoach(uiText('先点最高的那个百分比。我们要教玩家优先看最像答案的分块。', 'Click the highest percentage first. We want players to inspect the piece closest to the answer.'));
+                return;
+            }
+            tutorialStage = 'clickHint';
+            setTimeout(() => renderTutorialCoach(uiText('就是这样。百分比会高亮对应分块，方便你判断哪块像答案。', 'Exactly. Percentages highlight the matching piece so you can tell which part resembles the answer.')), 50);
+        }
+
+        function getBestSimilarityItem() {
+            const items = Array.from(detailSimilarity.querySelectorAll('.similarity-item'));
+            if (!items.length) return null;
+            return items.reduce((best, item) => {
+                const currentValue = parseInt(item.querySelector('.similarity-value')?.textContent || '0', 10);
+                const bestValue = parseInt(best.querySelector('.similarity-value')?.textContent || '0', 10);
+                return currentValue > bestValue ? item : best;
+            }, items[0]);
+        }
+
+        function handleTutorialHintClick() {
+            if (!tutorialActive || tutorialStage !== 'clickHint') return;
+            tutorialStage = 'guessChen';
+            setTimeout(() => renderTutorialCoach(uiText('提示就这么用。下一步猜「衬」，看看衣字旁相关结构。', 'That is how hints work. Next, guess 衬 and inspect the clothing-side structure.')), 50);
+        }
+
+        function handleTutorialDictionaryClick() {
+            if (!tutorialActive || tutorialStage !== 'openDictionary') return;
+            tutorialStage = 'surrender';
+            setTimeout(() => renderTutorialCoach(uiText('字典里是正式局答案池。看完以后，最后学一下认输按钮。', 'The dictionary is the real answer pool. After this, we will learn the Give Up button.')), 50);
+        }
+
+        function handleTutorialSurrender() {
+            if (!tutorialActive || tutorialStage !== 'surrender') return;
+            tutorialStage = 'easterEgg';
+            tutorialAwaitingPlayAgainExit = true;
+            setTimeout(() => {
+                renderTutorialCoach();
+                tutorialCoachActions.appendChild(createTutorialButton(uiText('开始正式随机局', 'Start a real random game'), () => {
+                    loseModal.classList.remove('show');
+                    tutorialActive = false;
+                    tutorialAwaitingPlayAgainExit = false;
+                    tutorialCoach.hidden = true;
+                    setTutorialSpotlight(null);
+                    startNewGame();
+                }));
+            }, 100);
+        }
+
+        function setTutorialSpotlight(element) {
+            if (tutorialSpotlightElement) {
+                tutorialSpotlightElement.classList.remove('tutorial-spotlight');
+            }
+            tutorialSpotlightElement = element || null;
+            if (tutorialSpotlightElement) {
+                tutorialSpotlightElement.classList.add('tutorial-spotlight');
+            }
+        }
+
+        function endGuidedGame() {
+            tutorialActive = false;
+            setTutorialSpotlight(null);
+            tutorialCoach.hidden = true;
+            startNewGame();
+        }
+
+        function showHelpNudge(message) {
+            clearTimeout(tutorialNudgeTimer);
+            tutorialCoach.hidden = false;
+            tutorialCoachTitle.textContent = '👀';
+            tutorialCoachBody.innerHTML = `<p>${message}</p>`;
+            tutorialCoachActions.innerHTML = '';
+            setTutorialSpotlight(helpBtn);
+            tutorialNudgeTimer = setTimeout(() => {
+                if (!tutorialActive) {
+                    tutorialCoach.hidden = true;
+                    setTutorialSpotlight(null);
+                }
+            }, 3000);
+        }
+
+        function showTemporaryCoachMessage(message) {
+            clearTimeout(tutorialNudgeTimer);
+            tutorialCoach.hidden = false;
+            tutorialCoachTitle.textContent = '✅';
+            tutorialCoachBody.innerHTML = `<p>${message}</p>`;
+            tutorialCoachActions.innerHTML = '';
+            setTutorialSpotlight(null);
+            tutorialNudgeTimer = setTimeout(() => {
+                if (!tutorialActive) {
+                    tutorialCoach.hidden = true;
+                }
+            }, 3000);
+        }
+
+        function openDebugMenu() {
+            if (!canOpenDebugMenu()) return;
+            debugModal.classList.add('show');
+            debugError.textContent = '';
+            debugPasswordInput.value = '';
+            if (debugAuthenticated) {
+                showDebugContent();
+            } else {
+                debugLock.hidden = false;
+                debugContent.hidden = true;
+                setTimeout(() => debugPasswordInput.focus(), 0);
+            }
+        }
+
+        function closeDebugMenu() {
+            debugModal.classList.remove('show');
+        }
+
+        function canOpenDebugMenu() {
+            // 占位：未来可在每日挑战、排行榜、公开分享等场景限制调试入口，保证公平性。
+            return true;
+        }
+
+        async function unlockDebugMenu() {
+            const hash = await md5(debugPasswordInput.value || '');
+            if (hash !== debugPasswordHash) {
+                debugError.textContent = '密码不对。';
+                return;
+            }
+            debugAuthenticated = true;
+            showDebugContent();
+        }
+
+        function showDebugContent() {
+            debugLock.hidden = true;
+            debugContent.hidden = false;
+            refreshDebugInfo();
+        }
+
+        function refreshDebugInfo() {
+            debugInfo.innerHTML = `
+                <div class="debug-row"><span>当前答案</span><strong>${escapeHtml(targetChar || '-')}</strong></div>
+                <div class="debug-row"><span>猜测次数</span><strong>${guessCount}</strong></div>
+                <div class="debug-row"><span>提示次数</span><strong>${hintCount}</strong></div>
+                <div class="debug-row wide"><span>最近提示</span><strong>${escapeHtml(lastHintDebugText || '暂无')}</strong></div>
+                <div class="debug-row"><span>教学模式</span><strong>${tutorialActive ? escapeHtml(tutorialStage || 'active') : '否'}</strong></div>
+            `;
+        }
+
+        async function md5(value) {
+            function add32(a, b) { return (a + b) & 0xffffffff; }
+            function cmn(q, a, b, x, s, t) { return add32(((add32(add32(a, q), add32(x, t)) << s) | (add32(add32(a, q), add32(x, t)) >>> (32 - s))), b); }
+            function ff(a, b, c, d, x, s, t) { return cmn((b & c) | ((~b) & d), a, b, x, s, t); }
+            function gg(a, b, c, d, x, s, t) { return cmn((b & d) | (c & (~d)), a, b, x, s, t); }
+            function hh(a, b, c, d, x, s, t) { return cmn(b ^ c ^ d, a, b, x, s, t); }
+            function ii(a, b, c, d, x, s, t) { return cmn(c ^ (b | (~d)), a, b, x, s, t); }
+            function md5cycle(x, k) {
+                let [a, b, c, d] = x;
+                a = ff(a, b, c, d, k[0], 7, -680876936); d = ff(d, a, b, c, k[1], 12, -389564586); c = ff(c, d, a, b, k[2], 17, 606105819); b = ff(b, c, d, a, k[3], 22, -1044525330);
+                a = ff(a, b, c, d, k[4], 7, -176418897); d = ff(d, a, b, c, k[5], 12, 1200080426); c = ff(c, d, a, b, k[6], 17, -1473231341); b = ff(b, c, d, a, k[7], 22, -45705983);
+                a = ff(a, b, c, d, k[8], 7, 1770035416); d = ff(d, a, b, c, k[9], 12, -1958414417); c = ff(c, d, a, b, k[10], 17, -42063); b = ff(b, c, d, a, k[11], 22, -1990404162);
+                a = ff(a, b, c, d, k[12], 7, 1804603682); d = ff(d, a, b, c, k[13], 12, -40341101); c = ff(c, d, a, b, k[14], 17, -1502002290); b = ff(b, c, d, a, k[15], 22, 1236535329);
+                a = gg(a, b, c, d, k[1], 5, -165796510); d = gg(d, a, b, c, k[6], 9, -1069501632); c = gg(c, d, a, b, k[11], 14, 643717713); b = gg(b, c, d, a, k[0], 20, -373897302);
+                a = gg(a, b, c, d, k[5], 5, -701558691); d = gg(d, a, b, c, k[10], 9, 38016083); c = gg(c, d, a, b, k[15], 14, -660478335); b = gg(b, c, d, a, k[4], 20, -405537848);
+                a = gg(a, b, c, d, k[9], 5, 568446438); d = gg(d, a, b, c, k[14], 9, -1019803690); c = gg(c, d, a, b, k[3], 14, -187363961); b = gg(b, c, d, a, k[8], 20, 1163531501);
+                a = gg(a, b, c, d, k[13], 5, -1444681467); d = gg(d, a, b, c, k[2], 9, -51403784); c = gg(c, d, a, b, k[7], 14, 1735328473); b = gg(b, c, d, a, k[12], 20, -1926607734);
+                a = hh(a, b, c, d, k[5], 4, -378558); d = hh(d, a, b, c, k[8], 11, -2022574463); c = hh(c, d, a, b, k[11], 16, 1839030562); b = hh(b, c, d, a, k[14], 23, -35309556);
+                a = hh(a, b, c, d, k[1], 4, -1530992060); d = hh(d, a, b, c, k[4], 11, 1272893353); c = hh(c, d, a, b, k[7], 16, -155497632); b = hh(b, c, d, a, k[10], 23, -1094730640);
+                a = hh(a, b, c, d, k[13], 4, 681279174); d = hh(d, a, b, c, k[0], 11, -358537222); c = hh(c, d, a, b, k[3], 16, -722521979); b = hh(b, c, d, a, k[6], 23, 76029189);
+                a = hh(a, b, c, d, k[9], 4, -640364487); d = hh(d, a, b, c, k[12], 11, -421815835); c = hh(c, d, a, b, k[15], 16, 530742520); b = hh(b, c, d, a, k[2], 23, -995338651);
+                a = ii(a, b, c, d, k[0], 6, -198630844); d = ii(d, a, b, c, k[7], 10, 1126891415); c = ii(c, d, a, b, k[14], 15, -1416354905); b = ii(b, c, d, a, k[5], 21, -57434055);
+                a = ii(a, b, c, d, k[12], 6, 1700485571); d = ii(d, a, b, c, k[3], 10, -1894986606); c = ii(c, d, a, b, k[10], 15, -1051523); b = ii(b, c, d, a, k[1], 21, -2054922799);
+                a = ii(a, b, c, d, k[8], 6, 1873313359); d = ii(d, a, b, c, k[15], 10, -30611744); c = ii(c, d, a, b, k[6], 15, -1560198380); b = ii(b, c, d, a, k[13], 21, 1309151649);
+                a = ii(a, b, c, d, k[4], 6, -145523070); d = ii(d, a, b, c, k[11], 10, -1120210379); c = ii(c, d, a, b, k[2], 15, 718787259); b = ii(b, c, d, a, k[9], 21, -343485551);
+                x[0] = add32(a, x[0]); x[1] = add32(b, x[1]); x[2] = add32(c, x[2]); x[3] = add32(d, x[3]);
+            }
+            function md5blk(s) {
+                const blocks = [];
+                for (let i = 0; i < 64; i += 4) blocks[i >> 2] = s.charCodeAt(i) + (s.charCodeAt(i + 1) << 8) + (s.charCodeAt(i + 2) << 16) + (s.charCodeAt(i + 3) << 24);
+                return blocks;
+            }
+            function rhex(n) {
+                let s = '';
+                for (let j = 0; j < 4; j++) s += ((n >> (j * 8 + 4)) & 0x0f).toString(16) + ((n >> (j * 8)) & 0x0f).toString(16);
+                return s;
+            }
+            let str = unescape(encodeURIComponent(value));
+            const state = [1732584193, -271733879, -1732584194, 271733878];
+            let i;
+            for (i = 64; i <= str.length; i += 64) md5cycle(state, md5blk(str.substring(i - 64, i)));
+            str = str.substring(i - 64);
+            const tail = new Array(16).fill(0);
+            for (i = 0; i < str.length; i++) tail[i >> 2] |= str.charCodeAt(i) << ((i % 4) << 3);
+            tail[i >> 2] |= 0x80 << ((i % 4) << 3);
+            if (i > 55) { md5cycle(state, tail); tail.fill(0); }
+            tail[14] = value.length * 8;
+            md5cycle(state, tail);
+            return state.map(rhex).join('');
+        }
+
+        function handleFooterVersionClick(event) {
+            const footer = event.target.closest('#edgeBuildFooter');
+            if (!footer) return;
+            clearTimeout(debugFooterClickTimer);
+            debugFooterClickCount++;
+            if (debugFooterClickCount >= 10) {
+                debugFooterClickCount = 0;
+                footer.classList.add('debug-footer-flash');
+                setTimeout(() => footer.classList.remove('debug-footer-flash'), 3000);
+                return;
+            }
+            debugFooterClickTimer = setTimeout(() => {
+                debugFooterClickCount = 0;
+            }, 2500);
+        }
+
+        function endRoundFromDebug() {
+            closeDebugMenu();
+            if (gameWon) {
+                startNewGame();
+            } else {
+                handleGiveUp();
+            }
+        }
+
+        function handleLosePlayAgain() {
+            loseModal.classList.remove('show');
+            if (tutorialAwaitingPlayAgainExit) {
+                tutorialActive = false;
+                tutorialStage = '';
+                tutorialAwaitingPlayAgainExit = false;
+                setTutorialSpotlight(null);
+                startNewGame();
+                showTemporaryCoachMessage('你已经学会了，开始吧');
+                return;
+            }
+            startNewGame();
+        }
+
+        function startDebugTargetRound() {
+            const value = debugTargetInput.value.trim();
+            if (!value || value.length !== 1) {
+                debugError.textContent = '请输入一个汉字。';
+                return;
+            }
+            closeDebugMenu();
+            tutorialActive = false;
+            tutorialStage = '';
+            tutorialCoach.hidden = true;
+            setTutorialSpotlight(null);
+            startNewGame(value);
+        }
+
+        function createTutorialButton(text, onClick, variant = '') {
+            const button = document.createElement('button');
+            button.className = variant === 'secondary' ? 'tutorial-btn secondary' : 'tutorial-btn';
+            button.textContent = text;
+            button.addEventListener('click', onClick);
+            return button;
         }
 
         let loadingTimeoutTimer = null;
@@ -397,12 +1867,21 @@
         }
 
         // ==================== 游戏逻辑 ====================
-        function startNewGame() {
-            targetChar = commonChars[Math.floor(Math.random() * commonChars.length)];
+        function startNewGame(forcedTarget = '') {
+            if (typeof forcedTarget !== 'string') {
+                forcedTarget = '';
+            }
+            targetChar = forcedTarget || commonChars[Math.floor(Math.random() * commonChars.length)];
             guessCount = 0;
             gameWon = false;
             guessHistory = [];
+            hintTextShown = false;
+            hintTextType = '';
+            hintMeaningValue = '';
+            revealedHintIndices = [];
+            hintCount = 0;
             updateGuessCountDisplay(0);
+            clearHintDisplay();
             guessInput.value = '';
             guessInput.classList.remove('has-svg');
             inputSvgOverlay.classList.remove('show');
@@ -417,6 +1896,7 @@
             // 预计算目标字路径
             targetPaths = extractClosedPaths(currentFont, targetChar, 200, 8);
             targetNestingLevels = determineNestingLevelsLocal(targetPaths);
+            updateHintButtonState();
 
             // 重置历史格子
             initHistoryGrid();
@@ -432,6 +1912,12 @@
 
             const guess = guessInput.value.trim();
             if (!guess || guess.length !== 1) return;
+            // 调试菜单入口暂时关闭，保留菜单逻辑以后再接回。
+            // if (guess === '~') {
+            //     guessInput.value = '';
+            //     openDebugMenu();
+            //     return;
+            // }
 
             guessCount++;
             updateGuessCountDisplay(guessCount);
@@ -473,11 +1959,193 @@
             if (isCorrectGuess) {
                 gameWon = true;
                 clearCountdown(); // 猜对了不需要倒计时
-                // 更新按钮文本为"重来"
-                guessBtn.textContent = (window.t && window.t('btn_restart_win')) || '重来';
+                // 更新按钮文本为"再来"
+                guessBtn.textContent = (window.t && window.t('btn_restart_win')) || '再来';
                 guessBtn.onclick = startNewGame;
-                setTimeout(showWinModal, 1500);
+                updateHintButtonState();
+                if (!tutorialActive) {
+                    setTimeout(showWinModal, 1500);
+                }
             }
+            handleTutorialGuess(guess);
+        }
+
+        function clearHintDisplay() {
+            hintDisplay.innerHTML = '';
+            hintDisplay.hidden = true;
+        }
+
+        function getVisibleTargetPathIndices() {
+            return targetPaths
+                .map((_, index) => index)
+                .filter(index => targetNestingLevels[index] % 2 === 0);
+        }
+
+        function updateHintButtonState() {
+            if (!hintBtn) return;
+            hintBtn.disabled = gameWon || isShowingResult || !targetPaths.length;
+        }
+
+        function handleHint() {
+            if (gameWon || isShowingResult) return;
+            clearAutoGuessTimer();
+            hintCount++;
+            const tutorialWasWaitingForHint = tutorialActive && tutorialStage === 'clickHint';
+
+            const availableHintTypes = ['shape'];
+            if (charHints[targetChar]) {
+                availableHintTypes.push('pinyin', 'meaning');
+            }
+
+            hintTextType = tutorialWasWaitingForHint ? 'shape' : availableHintTypes[Math.floor(Math.random() * availableHintTypes.length)];
+            hintTextShown = hintTextType !== 'shape';
+            hintMeaningValue = '';
+
+            if (hintTextType === 'pinyin' || hintTextType === 'meaning') {
+                renderTextHint();
+                updateHintButtonState();
+                guessInput.focus();
+                if (tutorialWasWaitingForHint) {
+                    handleTutorialHintClick();
+                }
+                return;
+            }
+
+            const remaining = getVisibleTargetPathIndices().filter(index => !revealedHintIndices.includes(index));
+            if (!remaining.length) {
+                revealedHintIndices = [];
+                remaining.push(...getVisibleTargetPathIndices());
+            }
+            if (!remaining.length) {
+                updateHintButtonState();
+                return;
+            }
+
+            const nextIndex = remaining[Math.floor(Math.random() * remaining.length)];
+            revealedHintIndices.push(nextIndex);
+            lastTutorialHintPart = tutorialWasWaitingForHint ? classifyTutorialHintPart(nextIndex) : '';
+            renderShapeHint(nextIndex);
+            updateHintButtonState();
+            guessInput.focus();
+            if (tutorialWasWaitingForHint) {
+                handleTutorialHintClick();
+            }
+        }
+
+        function renderTextHint() {
+            const hint = charHints[targetChar];
+            hintDisplay.innerHTML = '';
+            hintDisplay.hidden = false;
+
+            const text = document.createElement('div');
+            text.className = 'hint-text';
+            if (hint) {
+                const lang = (window.getCurrentLanguage && window.getCurrentLanguage()) || 'zh_cn';
+                const pinyinLabel = lang === 'zh_cn' ? '读音' : 'Pinyin';
+                const meaningLabel = lang === 'zh_cn' ? '释义' : 'Meaning';
+                if (hintTextType === 'pinyin') {
+                    lastHintDebugText = `${pinyinLabel}: ${hint.pinyin}`;
+                    text.innerHTML = `<strong>${pinyinLabel}</strong><span>${escapeHtml(hint.pinyin)}</span>`;
+                } else {
+                    if (!hintMeaningValue) {
+                        hintMeaningValue = pickMeaning(hint.meaning || hint.meaningEn || '');
+                    }
+                    lastHintDebugText = `${meaningLabel}: ${hintMeaningValue}`;
+                    text.innerHTML = `<strong>${meaningLabel}</strong><span>${escapeHtml(hintMeaningValue)}</span>`;
+                }
+            } else {
+                lastHintDebugText = '暂无读音/字义数据';
+                text.textContent = ((window.getCurrentLanguage && window.getCurrentLanguage()) === 'en_us')
+                    ? 'No pronunciation or meaning data. The next hint will reveal a glyph part.'
+                    : '暂无读音/字义数据，下一次提示会给出字形分块。';
+            }
+            hintDisplay.appendChild(text);
+        }
+
+        function pickMeaning(value) {
+            const parts = String(value)
+                .split('/')
+                .map(part => part.trim())
+                .filter(Boolean);
+            if (!parts.length) return value;
+            return parts[Math.floor(Math.random() * parts.length)];
+        }
+
+        function renderShapeHint(pathIndex) {
+            hintDisplay.innerHTML = '';
+            hintDisplay.hidden = false;
+            lastHintDebugText = `字形分块 #${pathIndex}${lastTutorialHintPart ? ` (${lastTutorialHintPart})` : ''}`;
+
+            const piece = document.createElement('div');
+            piece.className = 'hint-piece';
+            piece.appendChild(createNestedHintSvg(pathIndex, 52));
+            hintDisplay.appendChild(piece);
+        }
+
+        function classifyTutorialHintPart(pathIndex) {
+            const visiblePaths = getVisibleTargetPathIndices().map(index => targetPaths[index]);
+            const allPoints = visiblePaths.flatMap(path => path.points || []);
+            const glyphBounds = getPathBoundsLocal(allPoints);
+            const pathBounds = targetPaths[pathIndex].bounds;
+            if (!glyphBounds || !pathBounds) return 'door';
+
+            const glyphWidth = glyphBounds.maxX - glyphBounds.minX || 1;
+            const glyphHeight = glyphBounds.maxY - glyphBounds.minY || 1;
+            const centerX = ((pathBounds.minX + pathBounds.maxX) / 2 - glyphBounds.minX) / glyphWidth;
+            const centerY = ((pathBounds.minY + pathBounds.maxY) / 2 - glyphBounds.minY) / glyphHeight;
+            const widthRatio = (pathBounds.maxX - pathBounds.minX) / glyphWidth;
+            const heightRatio = (pathBounds.maxY - pathBounds.minY) / glyphHeight;
+            const areaRatio = widthRatio * heightRatio;
+
+            if (areaRatio < 0.025 || (widthRatio < 0.18 && heightRatio < 0.18)) return 'dot';
+            if (centerY < 0.25 && widthRatio > 0.2) return 'grass';
+            if (centerX < 0.34) return 'li';
+            return 'door';
+        }
+
+        function createNestedHintSvg(pathIndex, displaySize = 52) {
+            const padding = 8;
+            const rootPath = targetPaths[pathIndex];
+            const rootLevel = targetNestingLevels[pathIndex];
+            const bounds = rootPath.bounds || { minX: 0, minY: 0, maxX: 100, maxY: 100 };
+            const width = (bounds.maxX - bounds.minX) + padding * 2;
+            const height = (bounds.maxY - bounds.minY) + padding * 2;
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', displaySize);
+            svg.setAttribute('height', displaySize);
+            svg.setAttribute('viewBox', `${bounds.minX - padding} ${bounds.minY - padding} ${width} ${height}`);
+
+            const includedIndices = targetPaths
+                .map((path, index) => ({ path, index }))
+                .filter(({ path, index }) => index === pathIndex || (
+                    targetNestingLevels[index] > rootLevel &&
+                    isPathContainedByLocal(path.points, rootPath.points)
+                ))
+                .map(({ index }) => index)
+                .sort((a, b) => targetNestingLevels[a] - targetNestingLevels[b]);
+
+            includedIndices.forEach(index => {
+                const pathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                const relativeLevel = targetNestingLevels[index] - rootLevel;
+                pathElement.setAttribute('d', targetPaths[index].pathString);
+                pathElement.setAttribute('fill', relativeLevel % 2 === 0 ? 'var(--color-present)' : 'var(--color-bg-secondary)');
+                pathElement.setAttribute('stroke', 'var(--color-text)');
+                pathElement.setAttribute('stroke-width', '1');
+                svg.appendChild(pathElement);
+            });
+
+            return svg;
+        }
+
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"']/g, char => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            })[char]);
         }
 
         function showInputSvgOverlay(paths, nestingLevels, matchScores, isCorrect = false) {
@@ -489,6 +2157,7 @@
             inputSvgOverlay.classList.add('show');
             guessInput.classList.add('has-svg');
             isShowingResult = true;
+            updateHintButtonState();
             
             // 猜对时只变边框为绿色，背景保持黑/白
             if (isCorrect) {
@@ -514,6 +2183,7 @@
             isShowingResult = false;
             clearCountdown();
             guessBtn.textContent = (window.t && window.t('btn_guess')) || '猜';
+            updateHintButtonState();
             // 仅当手写板未打开时才聚焦输入框，避免移动端弹出软键盘
             if (!handwriteModal.classList.contains('show')) {
                 guessInput.focus();
@@ -585,7 +2255,10 @@
                         tile.classList.add('not-in-list');
                     }
 
-                    tile.onclick = () => openDetailPanel(data);
+                    tile.onclick = () => {
+                        openDetailPanel(data);
+                        handleTutorialHistoryClick();
+                    };
                 } else {
                     tile.classList.add('empty');
                     tile.onclick = null;
@@ -620,6 +2293,7 @@
                 // 点击高亮对应路径
                 item.addEventListener('click', () => {
                     highlightPath(svg, index);
+                    handleTutorialSimilarityClick(item);
                 });
                 
                 detailSimilarity.appendChild(item);
@@ -721,27 +2395,55 @@
         // ==================== 弹窗 ====================
         function showWinModal() {
             modalTarget.textContent = targetChar;
-            modalGuessCount.textContent = guessCount;
+            renderWinMessage();
             winModal.classList.add('show');
+        }
+
+        function renderWinMessage() {
+            const message = (window.t && window.t('win_message', guessCount, hintCount)) ||
+                `你用了 <strong id="modalGuessCount">${guessCount}</strong> 次猜测找到了答案！<br>提示了 <strong id="modalHintCount">${hintCount}</strong> 次`;
+            winModalMessage.innerHTML = message;
         }
 
         function showLoseModal() {
             loseModalTarget.textContent = targetChar;
-            loseModalGuessCount.textContent = guessCount;
+            renderLoseMessage();
             loseModal.classList.add('show');
+        }
+
+        function renderLoseMessage() {
+            const message = (window.t && window.t('lose_message', guessCount, hintCount)) ||
+                `答案是上面这个字，你猜了 <strong id="loseModalGuessCount">${guessCount}</strong> 次<br>提示了 <strong id="loseModalHintCount">${hintCount}</strong> 次`;
+            loseModalMessage.innerHTML = message;
         }
 
         function handleGiveUp() {
             if (gameWon) return;
             clearAutoGuessTimer();
             clearCountdown();
+            if (tutorialActive) {
+                if (tutorialStage === 'surrender') {
+                    handleTutorialSurrender();
+                } else {
+                    tutorialActive = false;
+                    tutorialStage = '';
+                    tutorialCoach.hidden = true;
+                    setTutorialSpotlight(null);
+                    closeTutorial();
+                    startNewGame();
+                    showHelpNudge('你不乖哦，乖了再来找我');
+                    return;
+                }
+            }
+            handleTutorialSurrender();
             
             // 更新显示为答案
-            guessCountContainer.innerHTML = `答案是「<span class="answer-char">${targetChar}</span>」<br>你猜了${guessCount}次`;
+            guessCountContainer.innerHTML = `答案是「<span class="answer-char">${targetChar}</span>」<br>你猜了${guessCount}次<br>提示了${hintCount}次`;
             
             // 更新按钮文本为"不服"
             guessBtn.textContent = (window.t && window.t('btn_restart_lose')) || '不服';
             guessBtn.onclick = startNewGame;
+            updateHintButtonState();
             
             showLoseModal();
         }
@@ -797,7 +2499,10 @@
 
             // 汉字列表浮窗
             detailWarning.addEventListener('click', toggleCharListModal);
-            dictBtn.addEventListener('click', toggleCharListModal);
+            dictBtn.addEventListener('click', () => {
+                toggleCharListModal();
+                handleTutorialDictionaryClick();
+            });
             charListCloseBtn.addEventListener('click', closeCharListModal);
             charListModal.addEventListener('click', (e) => {
                 if (e.target === charListModal) {
@@ -808,14 +2513,28 @@
             playAgainBtn.addEventListener('click', startNewGame);
             modalCloseBtn.addEventListener('click', () => winModal.classList.remove('show'));
 
-            // 认输按钮
+            // 提示/认输按钮
+            hintBtn.addEventListener('click', handleHint);
             giveUpBtn.addEventListener('click', handleGiveUp);
-            losePlayAgainBtn.addEventListener('click', startNewGame);
+            losePlayAgainBtn.addEventListener('click', handleLosePlayAgain);
             loseModalCloseBtn.addEventListener('click', () => loseModal.classList.remove('show'));
+
+            debugCloseBtn.addEventListener('click', closeDebugMenu);
+            debugUnlockBtn.addEventListener('click', unlockDebugMenu);
+            debugPasswordInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') unlockDebugMenu();
+            });
+            debugEndRoundBtn.addEventListener('click', endRoundFromDebug);
+            debugSetTargetBtn.addEventListener('click', startDebugTargetRound);
+            debugModal.addEventListener('click', (e) => {
+                if (e.target === debugModal) closeDebugMenu();
+            });
+            // 版本号连点入口暂时关闭，保留 handleFooterVersionClick 以后再接回。
+            // document.addEventListener('click', handleFooterVersionClick);
 
             // 帮助按钮
             helpBtn.addEventListener('click', () => {
-                helpGotItBtn.textContent = '我知道了';
+                helpGotItBtn.textContent = (window.t && window.t('btn_got_it')) || '我知道了';
                 helpModal.classList.add('show');
             });
             helpCloseBtn.addEventListener('click', () => {
@@ -824,9 +2543,16 @@
             helpGotItBtn.addEventListener('click', () => {
                 closeFirstTimeHelp();
             });
+            helpConfusedBtn.addEventListener('click', openTutorial);
             helpModal.addEventListener('click', (e) => {
                 if (e.target === helpModal) {
                     closeFirstTimeHelp();
+                }
+            });
+            tutorialCloseBtn.addEventListener('click', closeTutorial);
+            tutorialModal.addEventListener('click', (e) => {
+                if (e.target === tutorialModal) {
+                    closeTutorial();
                 }
             });
 

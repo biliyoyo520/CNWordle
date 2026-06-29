@@ -13,6 +13,8 @@ CNWordle 是一款受 Wordle 启发的网页游戏，但针对汉字进行了独
 的一了在人他这个们为国地到以时要就会可你对能得着过后作道行然家方多经么去法学如同现没动起分还进好小部些主理心她前但因只从想实日军意力它把机公使情明性全三点外将高间问很最应战向头体相见被利什二等产或新制加斯月话合回特代信给位次度门任常海通教儿提立员解真论义几口认条平气题活尔别打变神总何数安少结受量感务做接场件计管期德资命金指许统区保至队形社便空决治展马科司基眼书非则听却达光放强即权思完设式路记南品住告类据程北边张该交规拉格望觉领共确传师观清今切院让识京口水沝淼㵘火炎焱燚炏
 ```
 
+最新目标汉字列表请以 `index.js` 中的 `commonChars` 为准。
+
 ## 游戏特色
 
 *   **字形相似度匹配**：核心算法利用 `opentype.js` 提取汉字轮廓，计算猜测字与目标字的笔画路径相似度。
@@ -26,6 +28,7 @@ CNWordle 是一款受 Wordle 启发的网页游戏，但针对汉字进行了独
         *   支持 Google 在线手写识别（高精度）。
         *   支持 HanziLookup 离线识别（无网可用）。
         *   支持代理模式解决跨域或网络问题。
+*   **提示功能**：卡住时可获取读音、释义或字形分块提示，降低上手难度。
 *   **深色模式**：支持跟随系统自动切换，或手动切换深色/浅色主题。
 *   **响应式设计**：完美适配桌面和移动端设备，提供舒适的交互体验。
 
@@ -86,6 +89,8 @@ CNWordle/
 - **代码**：Claude Opus 4.5、Gemini 3 Pro、GPT 4.1（摸鱼的）
 - **构思**：biliyoyo520
 - **灵感**：[chunqiuyiyu](https://news.ycombinator.com/item?id=46145168#46145277)
+- **字频数据**：[Jun Da: Chinese text computing](https://lingua.mtsu.edu/chinese-computing/)
+- **字频列表**：[现代汉语单字字频: Character frequency list of Modern Chinese](https://lingua.mtsu.edu/chinese-computing/statistics/char/list.php?Which=MO)
 - **技术点**：汉字otf字体转svg拆分、使用Google IME识别手写体、使用HanziLookup实现离线识别
 - **UI**：[Wordle](https://powerlanguage-wordle.github.io/)
 

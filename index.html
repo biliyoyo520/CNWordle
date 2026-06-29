@@ -100,6 +100,12 @@
                 </div>
             </header>
 
+            <div class="tutorial-coach" id="tutorialCoach" hidden>
+                <div class="tutorial-coach-title" id="tutorialCoachTitle">教学局</div>
+                <div class="tutorial-coach-body" id="tutorialCoachBody"></div>
+                <div class="tutorial-coach-actions" id="tutorialCoachActions"></div>
+            </div>
+
             <!-- 输入区域 -->
             <section class="input-section">
                 <div class="input-wrapper">
@@ -107,8 +113,10 @@
                     <div class="input-svg-overlay" id="inputSvgOverlay"></div>
                 </div>
                 <div class="guess-count" id="guessCountContainer">第 <span id="guessCount">0</span> 次</div>
+                <div class="hint-display" id="hintDisplay" hidden></div>
                 <div class="input-controls">
                     <button id="guessBtn" class="guess-btn" disabled data-i18n="btn_guess">猜</button>
+                    <button id="hintBtn" class="hint-btn" disabled data-i18n="btn_hint">提示</button>
                     <button id="giveUpBtn" class="give-up-btn" data-i18n="btn_give_up">认输</button>
                     <button id="handwriteBtn" class="handwrite-btn" data-i18n="btn_handwrite">✏️ 手写</button>
                 </div>
@@ -162,21 +170,30 @@
             <button class="help-modal-close" id="helpCloseBtn">&times;</button>
             <div class="help-modal-title" data-i18n="help_title">🎯 如何游戏</div>
             <div class="help-modal-content">
-                <p data-i18n="help_intro">猜出隐藏的汉字！每次猜测后，系统会根据<strong>字形相似度</strong>给出提示。</p>
+                <p data-i18n="help_intro">猜出隐藏的汉字！每次猜测后，系统会把你的字拆成字体里的封闭图形，再和答案逐块比较。它不是传统偏旁部首游戏，更像把汉字拆成一盒彩色拼图。</p>
+                <div class="help-tip-card" data-i18n="help_colorblind_default">👁️ 我猜你看不清楚颜色，已经帮你默认打开色盲模式。如果你觉得你可以，点击左上角「眼睛」图标即可关闭。</div>
+
+                <h4 data-i18n="help_goal_title">你要做什么</h4>
+                <div class="help-icon-grid">
+                    <div data-i18n="help_goal_1">⌨️ 输入或手写一个汉字。</div>
+                    <div data-i18n="help_goal_2">🧩 看它拆出来的每个字形分块。</div>
+                    <div data-i18n="help_goal_3">🌈 根据渐变颜色判断哪些分块接近答案。</div>
+                    <div data-i18n="help_goal_4">💡 卡住了就点「提示」，可以一直点，别有心理负担。</div>
+                </div>
                 
-                <h4 data-i18n="help_color_title">颜色含义</h4>
+                <h4 data-i18n="help_color_title">颜色渐变</h4>
                 <div class="help-color-legend">
                     <div class="help-color-item">
                         <div class="help-color-box green"></div>
-                        <span data-i18n="help_color_exact">部件完全匹配（≥99%）</span>
+                        <span data-i18n="help_color_exact">越接近这个颜色：越像答案的某个分块（≥99% 几乎就是它）</span>
                     </div>
                     <div class="help-color-item">
                         <div class="help-color-box yellow"></div>
-                        <span data-i18n="help_color_partial">部件部分相似（66%-99%）</span>
+                        <span data-i18n="help_color_partial">中间色：有点像，但还没贴上答案的脸（66%-99%）</span>
                     </div>
                     <div class="help-color-item">
                         <div class="help-color-box gray"></div>
-                        <span data-i18n="help_color_none">部件不匹配（<66%）</span>
+                        <span data-i18n="help_color_none">越接近这个颜色：基本不像，建议换个方向（<66%）</span>
                     </div>
                 </div>
 
@@ -185,11 +202,25 @@
                 <p data-i18n="help_border_yellow">• <strong style="color: var(--color-present)">黄色边框</strong>：这个字不在目标词库中</p>
 
                 <h4 data-i18n="help_action_title">操作方式</h4>
-                <p data-i18n="help_action_1">• 输入汉字后，按回车或点击「猜」按钮提交</p>
-                <p data-i18n="help_action_2">• 输入后3秒会自动提交</p>
-                <p data-i18n="help_action_3">• 点击历史格子可查看详情</p>
+                <p data-i18n="help_action_1">⌨️ 输入汉字后，按 Enter 或点击「猜」提交；懒得按也行，3 秒后会自动猜。</p>
+                <p data-i18n="help_action_2">✏️ 不会打字？点「手写」，写完后点候选字填入输入框。</p>
+                <p data-i18n="help_action_3">🕵️ 点击下方历史格子，可以放大查看每一块到底像不像。</p>
+                <p data-i18n="help_action_4">📖 左上角书本是答案字典；真的卡死了可以偷看，但我会假装没看见。</p>
             </div>
-            <button class="help-modal-btn" id="helpGotItBtn" data-i18n="btn_got_it">我知道了</button>
+            <div class="help-modal-actions">
+                <button class="help-secondary-btn" id="helpConfusedBtn" data-i18n="btn_confused">我看不懂</button>
+                <button class="help-modal-btn" id="helpGotItBtn" data-i18n="btn_got_it">我知道了</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 交互式教学 -->
+    <div class="help-modal-overlay" id="tutorialModal">
+        <div class="help-modal tutorial-modal">
+            <button class="help-modal-close" id="tutorialCloseBtn">&times;</button>
+            <div class="help-modal-title" id="tutorialTitle">🧪 交互式教学</div>
+            <div class="tutorial-body" id="tutorialBody"></div>
+            <div class="tutorial-actions" id="tutorialActions"></div>
         </div>
     </div>
 
@@ -199,7 +230,7 @@
             <button class="modal-close" id="modalCloseBtn">&times;</button>
             <div class="modal-title" data-i18n="win_title">🎉 你赢了！</div>
             <div class="modal-target" id="modalTarget"></div>
-            <div class="modal-message">
+            <div class="modal-message" id="winModalMessage">
                 你用了 <strong id="modalGuessCount">0</strong> 次猜测找到了答案！
             </div>
             <button class="modal-btn" id="playAgainBtn" data-i18n="btn_play_again">再来一局</button>
@@ -212,10 +243,33 @@
             <button class="modal-close" id="loseModalCloseBtn">&times;</button>
             <div class="modal-title" data-i18n="lose_title">😔 认输了</div>
             <div class="modal-target" id="loseModalTarget"></div>
-            <div class="modal-message">
+            <div class="modal-message" id="loseModalMessage">
                 答案是上面这个字，你猜了 <strong id="loseModalGuessCount">0</strong> 次
             </div>
             <button class="modal-btn" id="losePlayAgainBtn" data-i18n="btn_play_again">再来一局</button>
+        </div>
+    </div>
+
+    <!-- 调试菜单 -->
+    <div class="modal-overlay" id="debugModal">
+        <div class="modal debug-modal">
+            <button class="modal-close" id="debugCloseBtn">&times;</button>
+            <div class="modal-title">🛠 调试菜单</div>
+            <div class="debug-lock" id="debugLock">
+                <input type="password" id="debugPasswordInput" placeholder="输入调试密码" autocomplete="off">
+                <button class="modal-btn" id="debugUnlockBtn">解锁</button>
+                <div class="debug-error" id="debugError"></div>
+            </div>
+            <div class="debug-content" id="debugContent" hidden>
+                <div class="debug-info" id="debugInfo"></div>
+                <div class="debug-actions">
+                    <button class="modal-btn" id="debugEndRoundBtn">结束这一局</button>
+                    <div class="debug-custom-target">
+                        <input type="text" id="debugTargetInput" maxlength="1" placeholder="自定义目标汉字">
+                        <button class="modal-btn" id="debugSetTargetBtn">开始指定局</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
